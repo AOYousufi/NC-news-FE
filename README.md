@@ -1,72 +1,47 @@
-# NC News — Frontend
+# NC News - Frontend
 
-A Reddit-inspired news client built with **React**. Browse articles by topic, vote on posts, read and post comments, and filter by popularity or date.
+A React news client built as the frontend for my NC News REST API. Users can browse articles by topic, vote, read and post comments, and sort content by date, votes or comment count.
 
-Consumes the [NC News REST API](https://github.com/AOYousufi/NC-News-BE).
+## Links
 
----
+- **Live site:** [nc-news-sultan.netlify.app](https://nc-news-sultan.netlify.app/)
+- **Backend repo:** [github.com/AOYousufi/NC-News-BE](https://github.com/AOYousufi/NC-News-BE)
 
-## 🔗 Links
+> The backend is hosted on a free tier, so the first load can take a short while if the API is asleep.
 
-- **Live Site:** [nc-news-sultan.netlify.app](https://nc-news-sultan.netlify.app/)
-- **Backend Repo:** [github.com/AOYousufi/NC-News-BE](https://github.com/AOYousufi/NC-News-BE)
-
-> ⚠️ Hosted on free tier — the API may take 30–60 seconds to wake on first load.
-
----
-
-## 🛠 Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
 | Framework | React |
-| Build Tool | Vite |
+| Build tool | Vite |
 | Routing | React Router |
-| HTTP Client | Axios |
+| HTTP client | Axios |
 | Animations | Lottie |
 | Hosting | Netlify |
 
----
+## Features
 
-## ✨ Features
-
-- Browse articles filtered by topic, sorted by date, votes, or comment count
+- Browse articles by topic
+- Sort by date, votes or comment count
 - Vote on articles and comments
 - Post and delete comments
-- Responsive layout across desktop and mobile
+- Responsive layout for desktop and mobile
 - Error handling for invalid routes and failed requests
 
----
-
-## ⚙️ Local Setup
-
-### 1. Clone the repo
+## Local setup
 
 ```bash
-git clone https://github.com/Sultan0013/NC-news-FE.git
+git clone https://github.com/AOYousufi/NC-news-FE.git
 cd NC-news-FE
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
-```
-
-### 3. Start the development server
-
-```bash
 npm run dev
 ```
 
-Then open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
+Then open [http://localhost:5173](http://localhost:5173).
 
 ## Requirements
 
-- Node.js `v21.7.3+`
+- Node.js v21.7.3+
 
----
-
-*Built as part of the Northcoders Digital Skills Bootcamp in Software Engineering.*
+Built as part of the Northcoders Full-Stack Software Development bootcamp.
