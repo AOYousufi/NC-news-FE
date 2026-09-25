@@ -11,7 +11,7 @@ function Footer() {
         </a>
         <a
           target="_blank"
-          href="https://github.com/Sultan0013"
+          href="https://github.com/AOYousufi"
           className="link link-hover text-gray-600 hover:text-gray-900"
         >
           Contact
