@@ -1,36 +1,38 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { fetchTopics } from "../../../api/api";
+
 function Topics({ setError }) {
   const [topics, setTopics] = useState([]);
+
   useEffect(() => {
     fetchTopics().then(setTopics).catch(setError);
-  }, []);
+  }, [setError]);
+
+  const className = ({ isActive }) =>
+    "whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-bold transition " +
+    (isActive
+      ? "bg-indigo-600 text-white"
+      : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950");
 
   return (
-    <div className="dropdown dropdown-right">
-      <div
-        tabIndex={0}
-        role="button"
-        className="btn m-1 bg-yellow-400 text-black"
-      >
-        Topics
-      </div>
-      <ul
-        tabIndex={0}
-        className="dropdown-content menu rounded-box z-[1] w-30 p-2 shadow bg-yellow-100 text-black"
-      >
-        {topics.map((topic, index) => {
-          return (
-            <NavLink to={`/articles/topics/${topic.slug}`} key={index}>
-              <li className="btn bg-yellow-200 hover:bg-yellow-300 text-black">
-                {topic.slug}
-              </li>
-            </NavLink>
-          );
-        })}
-      </ul>
-    </div>
+    <nav
+      aria-label="Article topics"
+      className="flex gap-2 overflow-x-auto pb-1"
+    >
+      <NavLink to="/articles" end className={className}>
+        All
+      </NavLink>
+      {topics.map((topic) => (
+        <NavLink
+          to={"/articles/topics/" + topic.slug}
+          key={topic.slug}
+          className={className}
+        >
+          {topic.slug}
+        </NavLink>
+      ))}
+    </nav>
   );
 }
 

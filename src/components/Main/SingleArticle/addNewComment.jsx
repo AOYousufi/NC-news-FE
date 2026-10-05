@@ -1,82 +1,87 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
+import { UserContext } from "../../../../Context/userContext";
 import { addComment } from "../../../api/api";
 
-function PostComment({ article_id, comments, setComments, username }) {
+function PostComment({ article_id, comments, setComments }) {
+  const { loggedUser } = useContext(UserContext);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (comment.trim() === "") {
-      setError({ status: 400, message: "Comment cannot be empty" });
+  if (!loggedUser) {
+    return (
+      <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm text-indigo-900">
+        Want to join the discussion?{" "}
+        <Link to="/login" className="font-black underline underline-offset-2">
+          Sign in
+        </Link>{" "}
+        to post a comment.
+      </div>
+    );
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (!comment.trim()) {
+      setError("Comment cannot be empty.");
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
-    const newComment = {
-      username: username,
-      body: comment,
-    };
 
-    addComment(article_id, newComment)
-      .then((newComment) => {
-        setComment("");
-        setSuccessMessage("Comment posted successfully!");
-        setIsSubmitting(false);
-        setComments([newComment, ...comments]);
-      })
-      .catch((err) => {
-        setError(err);
-        setIsSubmitting(false);
+    try {
+      const newComment = await addComment(article_id, {
+        body: comment.trim(),
       });
+      setComments([newComment, ...comments]);
+      setComment("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="post-comment">
-      <button
-        className="btn"
-        onClick={() => document.getElementById("my_modal_4").showModal()}
-        disabled={!username}
-      >
-        Add a new comment
-      </button>
-      <dialog id="my_modal_4" className="modal">
-        <div className="modal-box w-11/12 max-w-5xl">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 p-4 border rounded-md shadow-md bg-base-100"
-          >
-            <textarea
-              className="textarea textarea-bordered  w-full h-24"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Write your comment here..."
-              disabled={isSubmitting}
-            />
-
-            <button type="submit" className="btn" disabled={isSubmitting}>
-              Post Comment
-            </button>
-          </form>
-          {error && (
-            <p className="error-message">
-              "Failed to add comment : "{error.message}
-            </p>
-          )}
-          {successMessage && (
-            <p className="success-message">{successMessage}</p>
-          )}
-          <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
-          </div>
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-black text-slate-950">Add a comment</h2>
+          <p className="text-sm text-slate-500">Posting as @{loggedUser.username}</p>
         </div>
-      </dialog>
-    </div>
+      </div>
+
+      <textarea
+        value={comment}
+        onChange={(event) => setComment(event.target.value)}
+        placeholder="Share your thoughts..."
+        rows="4"
+        disabled={isSubmitting}
+        className="mt-4 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+      />
+
+      {error && (
+        <p role="alert" className="mt-3 text-sm font-medium text-red-600">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-4 flex justify-end">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:opacity-60"
+        >
+          {isSubmitting ? "Posting..." : "Post comment"}
+        </button>
+      </div>
+    </form>
   );
 }
 

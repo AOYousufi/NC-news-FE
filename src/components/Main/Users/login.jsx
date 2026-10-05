@@ -1,77 +1,100 @@
-import { useState, useContext } from "react";
-import { checkUser } from "../../../api/api";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
-import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { setLoggedUser } = useContext(UserContext);
+  const { login } = useContext(UserContext);
   const [username, setUsername] = useState("");
-  const [error, setError] = useState(null);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (username) {
-      checkUser(username)
-        .then((user) => {
-          setLoggedUser(user);
-          navigate("/articles");
-          setUsername("");
-        })
-        .catch((err) => {
-          if (err.status === 404) {
-            setError("Username not found");
-          } else {
-            setError("An error occurred. Please try again.");
-          }
-        });
-    } else {
-      setError("Username is required");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (!username.trim() || !password) {
+      setError("Username and password are required.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await login({ username: username.trim(), password });
+      navigate("/articles");
+    } catch (err) {
+      setError(
+        err.status === 401
+          ? "That username or password is incorrect."
+          : err.message
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    setUsername(e.target.value);
-    setError(null);
-  };
-
   return (
-    <div
-      className="flex justify-center items-center h-screen"
-      style={{
-        backgroundImage: `url('https://img.freepik.com/free-vector/geometric-gradient-futuristic-background_23-2149116406.jpg')`,
-        backgroundSize: "cover",
-      }}
-    >
-      <div className="card w-96 bg-white bg-opacity-90 shadow-xl p-6">
-        <div className="card-body">
-          <h2 className="card-title text-center text-2xl font-bold">Login</h2>
-          <div className="form-control">
-            <label className="label" htmlFor="username">
-              <span className="label-text">Username</span>
-            </label>
+    <section className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-12 sm:px-6">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
+        <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
+          Welcome back
+        </p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+          Log in to NC News
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          You can browse without an account. Sign in when you want to vote or
+          comment.
+        </p>
+
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">Username</span>
             <input
-              id="username"
               type="text"
-              placeholder="Enter your username"
-              className="input input-bordered"
+              autoComplete="username"
               value={username}
-              onChange={handleInputChange}
-              aria-describedby="error-message"
+              onChange={(event) => setUsername(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
-            {error && (
-              <p id="error-message" className="text-red-600 mt-2 text-sm">
-                {error}
-              </p>
-            )}
-          </div>
-          <div className="form-control mt-6">
-            <button className="btn btn-primary" onClick={handleLogin}>
-              Login
-            </button>
-          </div>
-        </div>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">Password</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "Logging in..." : "Log in"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-500">
+          New here?{" "}
+          <Link to="/signup" className="font-bold text-indigo-600 hover:text-indigo-700">
+            Create an account
+          </Link>
+        </p>
       </div>
-    </div>
+    </section>
   );
 };
 

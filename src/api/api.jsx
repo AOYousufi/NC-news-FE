@@ -2,108 +2,111 @@ import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://nc-news-vvdv.onrender.com/api";
+const TOKEN_KEY = "ncNewsToken";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  if (token) {
+    config.headers.Authorization = "Bearer " + token;
+  }
+
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response) {
-      if (error.response.status === 404) {
-        return Promise.reject({
-          status: 404,
-          message:
-            "404 : Sorry, we couldn't find the resource you were looking for. It might have been moved, deleted, or never existed. Please check the URL or visit our homepage to find what you need. If you think this is a mistake, contact support for assistance.",
-        });
-      }
-      if (error.response.status === 400) {
-        return Promise.reject({
-          status: 400,
-          message:
-            "400 : Sorry, there was a problem with your request. Please check the details and try again. If you need assistance, contact support.",
-        });
-      }
-      if (error.response.status === 500) {
-        return Promise.reject({
-          status: 500,
-          message:
-            "500 : Oops! Something went wrong on our end. We're working hard to fix it. Please try again later. If the problem persists, feel free to contact support for more help.",
-        });
-      }
-    }
+    const status = error.response?.status || 500;
+    const serverMessage =
+      error.response?.data?.msg || error.response?.data?.message;
+
+    const fallbackMessages = {
+      400: "Please check the information you entered and try again.",
+      401: "Please sign in to continue.",
+      403: "You do not have permission to do that.",
+      404: "We could not find what you were looking for.",
+      409: "That account or resource already exists.",
+      500: "Something went wrong on the server. Please try again.",
+    };
 
     return Promise.reject({
-      status: error.response?.status || 500,
+      status,
       message:
-        error.response?.data?.message ||
+        serverMessage ||
+        fallbackMessages[status] ||
         error.message ||
-        "An unexpected error occurred. Please try again later or contact support if the issue persists.",
+        "Something went wrong. Please try again.",
     });
   }
 );
 
-const fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
-  return api
+const fetchArticles = ({
+  sort_by = "created_at",
+  order = "desc",
+  topic,
+  author,
+  limit,
+  p,
+} = {}) =>
+  api
     .get("/articles", {
-      params: { sort_by, order, topic },
+      params: { sort_by, order, topic, author, limit, p },
     })
     .then((response) => response.data.articles);
-};
 
-const fetchArticle = (article_id) => {
-  return api
-    .get(`/articles/${article_id}`)
+const fetchArticle = (articleId) =>
+  api
+    .get("/articles/" + articleId)
     .then((response) => response.data.article[0]);
-};
 
-const fetchTopics = () => {
-  return api.get("/topics").then((response) => response.data.topics);
-};
+const fetchTopics = () =>
+  api.get("/topics").then((response) => response.data.topics);
 
-const updateVotes = (article_id, vote_info) => {
-  return api
-    .patch(`/articles/${article_id}`, vote_info)
-    .then((response) => response.data.votes);
-};
+const updateVotes = (articleId, voteInfo) =>
+  api
+    .patch("/articles/" + articleId, voteInfo)
+    .then((response) => response.data.article);
 
-const fetchComments = (article_id) => {
-  return api
-    .get(`/articles/${article_id}/comments`)
+const fetchComments = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/comments")
     .then((response) => response.data.comments);
-};
 
-const addComment = (article_id, newComment) => {
-  return api
-    .post(`/articles/${article_id}/comments`, newComment)
+const addComment = (articleId, comment) =>
+  api
+    .post("/articles/" + articleId + "/comments", comment)
     .then((response) => response.data.Comment);
-};
 
-const deleteComment = (comment_id) => {
-  return api.delete(`/comments/${comment_id}`).then(() => true);
-};
+const deleteComment = (commentId) =>
+  api.delete("/comments/" + commentId).then(() => true);
 
-const checkUser = (username) => {
-  return api.get(`/users/${username}`).then((response) => {
-    return response.data;
-  });
-};
+const loginUser = (credentials) =>
+  api.post("/users/login", credentials).then((response) => response.data);
 
-const createUser = (user) => {
-  return api.post("/users/signup", user).then((response) => {
-    return response.data;
-  });
-};
+const registerUser = (user) =>
+  api.post("/users/register", user).then((response) => response.data);
+
+const fetchCurrentUser = () =>
+  api.get("/users/me").then((response) => response.data.user);
+
+const updateCurrentUser = (updates) =>
+  api.patch("/users/me", updates).then((response) => response.data.user);
 
 export {
-  fetchArticles,
-  fetchTopics,
   addComment,
-  fetchArticle,
-  fetchComments,
   deleteComment,
+  fetchArticle,
+  fetchArticles,
+  fetchComments,
+  fetchCurrentUser,
+  fetchTopics,
+  loginUser,
+  registerUser,
+  updateCurrentUser,
   updateVotes,
-  checkUser,
-  createUser,
 };
