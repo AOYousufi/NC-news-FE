@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
 import { deleteComment, fetchComments } from "../../../api/api";
 import Loading from "../../UI/Loading";
@@ -56,7 +57,10 @@ function ArticleComments({ article_id, comments, setComments }) {
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {error}
         </p>
       )}
@@ -69,7 +73,14 @@ function ArticleComments({ article_id, comments, setComments }) {
         <div className="mt-5 space-y-3">
           {comments.map((comment) => {
             const ownsComment = loggedUser?.username === comment.author;
-            const date = new Date(comment.created_at).toLocaleDateString();
+            const date = new Date(comment.created_at).toLocaleDateString(
+              undefined,
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              }
+            );
 
             return (
               <article
@@ -78,7 +89,12 @@ function ArticleComments({ article_id, comments, setComments }) {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-black text-slate-900">@{comment.author}</p>
+                    <Link
+                      to={"/users/" + comment.author}
+                      className="font-black text-slate-900 transition hover:text-indigo-700"
+                    >
+                      @{comment.author}
+                    </Link>
                     <p className="mt-1 text-xs font-medium text-slate-400">
                       {date} · {comment.votes} votes
                     </p>

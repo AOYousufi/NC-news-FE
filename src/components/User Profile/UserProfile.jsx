@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/userContext";
+import Avatar from "../UI/Avatar";
 
 function UserProfile() {
   const { loggedUser, isAuthLoading, updateProfile } = useContext(UserContext);
@@ -51,32 +52,28 @@ function UserProfile() {
     }
   };
 
-  const initial = (loggedUser.name || loggedUser.username || "U")
-    .charAt(0)
-    .toUpperCase();
-
   return (
     <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
-        <div className="bg-slate-950 px-6 py-10 text-white sm:px-10">
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 px-6 py-10 text-white sm:px-10">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            {loggedUser.avatar_url ? (
-              <img
-                src={loggedUser.avatar_url}
-                alt=""
-                className="h-24 w-24 rounded-2xl border-4 border-white/10 object-cover"
-              />
-            ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-indigo-600 text-4xl font-black">
-                {initial}
-              </div>
-            )}
+            <Avatar
+              user={loggedUser}
+              size="lg"
+              className="border-4 border-white/10"
+            />
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-300">
                 Your profile
               </p>
               <h1 className="mt-2 text-4xl font-black">{loggedUser.name}</h1>
               <p className="mt-1 text-slate-300">@{loggedUser.username}</p>
+              <Link
+                to={"/users/" + loggedUser.username}
+                className="mt-4 inline-block text-sm font-bold text-indigo-200 hover:text-white"
+              >
+                View public profile →
+              </Link>
             </div>
           </div>
         </div>
@@ -85,8 +82,8 @@ function UserProfile() {
           <div>
             <h2 className="text-xl font-black text-slate-950">Profile details</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Your username stays fixed. You can update your display name and
-              avatar.
+              Your username stays fixed. Update your display name or avatar at
+              any time.
             </p>
           </div>
 
@@ -100,7 +97,9 @@ function UserProfile() {
           </label>
 
           <label>
-            <span className="text-sm font-semibold text-slate-700">Avatar URL</span>
+            <span className="text-sm font-semibold text-slate-700">
+              Avatar URL
+            </span>
             <input
               type="url"
               value={avatarUrl}

@@ -1,9 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
 
 const SignUp = () => {
-  const { register } = useContext(UserContext);
+  const { loggedUser, register } = useContext(UserContext);
   const [form, setForm] = useState({
     username: "",
     name: "",
@@ -14,6 +14,12 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loggedUser) {
+      navigate("/articles", { replace: true });
+    }
+  }, [loggedUser, navigate]);
 
   const updateField = (event) => {
     setError("");
@@ -29,6 +35,13 @@ const SignUp = () => {
 
     if (!form.username.trim() || !form.name.trim() || !form.password) {
       setError("Username, name and password are required.");
+      return;
+    }
+
+    if (!/^[A-Za-z0-9_-]{3,30}$/.test(form.username.trim())) {
+      setError(
+        "Username must be 3–30 characters using letters, numbers, _ or -."
+      );
       return;
     }
 
@@ -54,9 +67,7 @@ const SignUp = () => {
       navigate("/articles");
     } catch (err) {
       setError(
-        err.status === 409
-          ? "That username is already taken."
-          : err.message
+        err.status === 409 ? "That username is already taken." : err.message
       );
     } finally {
       setIsSubmitting(false);
@@ -64,7 +75,9 @@ const SignUp = () => {
   };
 
   return (
-    <section className="mx-auto flex max-w-6xl items-center justify-center px-4 py-12 sm:px-6">
+    <section className="relative mx-auto flex max-w-6xl items-center justify-center overflow-hidden px-4 py-12 sm:px-6">
+      <div className="pointer-events-none absolute left-1/2 top-1/3 -z-10 h-80 w-80 -translate-x-1/2 rounded-full bg-violet-100 blur-3xl" />
+
       <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
           Join the community
@@ -73,8 +86,8 @@ const SignUp = () => {
           Create your account
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Keep it simple: choose a username and password, then add an avatar if
-          you want one.
+          A simple account is all you need to vote, comment and manage your
+          public profile.
         </p>
 
         <form className="mt-8 grid gap-5 sm:grid-cols-2" onSubmit={handleSubmit}>
@@ -85,6 +98,7 @@ const SignUp = () => {
               value={form.username}
               onChange={updateField}
               autoComplete="username"
+              placeholder="e.g. ozair_dev"
               className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
@@ -96,13 +110,15 @@ const SignUp = () => {
               value={form.name}
               onChange={updateField}
               autoComplete="name"
+              placeholder="Your display name"
               className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
 
           <label className="block sm:col-span-2">
             <span className="text-sm font-semibold text-slate-700">
-              Avatar URL <span className="font-normal text-slate-400">(optional)</span>
+              Avatar URL{" "}
+              <span className="font-normal text-slate-400">(optional)</span>
             </span>
             <input
               name="avatar_url"
@@ -122,6 +138,7 @@ const SignUp = () => {
               value={form.password}
               onChange={updateField}
               autoComplete="new-password"
+              placeholder="8+ characters"
               className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
@@ -160,7 +177,10 @@ const SignUp = () => {
 
         <p className="mt-6 text-center text-sm text-slate-500">
           Already registered?{" "}
-          <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-700">
+          <Link
+            to="/login"
+            className="font-bold text-indigo-600 hover:text-indigo-700"
+          >
             Log in
           </Link>
         </p>

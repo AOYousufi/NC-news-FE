@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import {
+  AUTH_EXPIRED_EVENT,
   fetchCurrentUser,
   loginUser,
   registerUser,
@@ -26,6 +27,15 @@ export const UserProvider = ({ children }) => {
     localStorage.removeItem(TOKEN_KEY);
     setLoggedUser(null);
   }, []);
+
+  useEffect(() => {
+    const handleExpiredSession = () => logout();
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession);
+
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession);
+    };
+  }, [logout]);
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);

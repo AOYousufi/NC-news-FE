@@ -12,6 +12,7 @@ function SingleArticle() {
   const { loggedUser } = useContext(UserContext);
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState("");
   const [votes, setVotes] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
@@ -19,6 +20,7 @@ function SingleArticle() {
 
   useEffect(() => {
     setError(null);
+    setActionError("");
     setArticle(null);
     setHasVoted(false);
 
@@ -37,7 +39,7 @@ function SingleArticle() {
     setVotes((current) => current + change);
     setHasVoted(true);
     setIsVoting(true);
-    setError(null);
+    setActionError("");
 
     try {
       const updated = await updateVotes(article.article_id, {
@@ -47,7 +49,7 @@ function SingleArticle() {
     } catch (err) {
       setVotes(previousVotes);
       setHasVoted(false);
-      setError(err);
+      setActionError(err.message);
     } finally {
       setIsVoting(false);
     }
@@ -64,6 +66,13 @@ function SingleArticle() {
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <Link
+        to="/articles"
+        className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
+      >
+        ← Back to articles
+      </Link>
+
       <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         {article.article_img_url && (
           <img
@@ -75,11 +84,22 @@ function SingleArticle() {
 
         <div className="p-6 sm:p-9">
           <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500">
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+            <Link
+              to={"/articles/topics/" + article.topic}
+              className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 transition hover:bg-indigo-100"
+            >
               {article.topic}
-            </span>
+            </Link>
             <span>{date}</span>
-            <span>By {article.author}</span>
+            <span>
+              By{" "}
+              <Link
+                to={"/users/" + article.author}
+                className="font-bold text-slate-700 hover:text-indigo-700"
+              >
+                @{article.author}
+              </Link>
+            </span>
           </div>
 
           <h1 className="mt-5 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
@@ -124,6 +144,21 @@ function SingleArticle() {
               </Link>
             )}
           </div>
+
+          {hasVoted && !actionError && (
+            <p className="mt-4 text-sm font-semibold text-emerald-600">
+              Vote recorded. You can change it after refreshing the page.
+            </p>
+          )}
+
+          {actionError && (
+            <p
+              role="alert"
+              className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {actionError}
+            </p>
+          )}
         </div>
       </article>
 

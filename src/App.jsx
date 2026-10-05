@@ -8,6 +8,8 @@ import ListArticlesByTopic from "./components/Main/Articles/ArticlesListedByTopi
 import SingleArticle from "./components/Main/SingleArticle/singleArticle";
 import Login from "./components/Main/Users/login";
 import SignUp from "./components/Main/Users/signup";
+import Users from "./components/Main/Users/Users";
+import PublicUserProfile from "./components/Main/Users/PublicUserProfile";
 import UserProfile from "./components/User Profile/UserProfile";
 import NotFound from "./components/UI/NotFound";
 
@@ -27,6 +29,8 @@ function App() {
                 element={<ListArticlesByTopic />}
               />
               <Route path="/articles/:article_id" element={<SingleArticle />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/users/:username" element={<PublicUserProfile />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/userProfile" element={<UserProfile />} />

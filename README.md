@@ -1,6 +1,6 @@
 # NC News - Frontend
 
-A React frontend for the NC News REST API. The app supports public article browsing with authenticated voting, commenting and profile management.
+A polished React frontend for the NC News REST API. Guests can browse the full public news experience, while authenticated users can vote, comment and manage their profile.
 
 ## Live links
 
@@ -10,16 +10,39 @@ A React frontend for the NC News REST API. The app supports public article brows
 
 ## Features
 
-- Browse articles and topics without an account
-- Sort articles by date, votes or comment count
-- Register and log in with the backend authentication API
-- Persistent bearer-token sessions
-- Vote on articles while authenticated
+### Public experience
+
+- Browse articles without an account
+- Topic navigation and URL-based sorting
+- Paginated article feed
+- Public community directory
+- Public user profiles with each user's articles
+- Read article discussions as a guest
+- Dynamic home page with popular stories
+
+### User management
+
+- Register with username/password
+- Log in with the backend authentication API
+- Bearer-token session persistence
+- Automatic current-user restoration
+- Expired/invalid session cleanup
+- Update profile name and avatar
+- View your public profile
+
+### Authenticated actions
+
+- Vote on articles
 - Post comments as the authenticated user
 - Delete only your own comments
-- View and update your profile
-- Responsive layout, loading states and API error handling
+
+### Quality
+
+- Responsive layout
+- Loading, empty and error states
 - Netlify SPA routing support
+- Environment-based API URL
+- GitHub Actions lint and production-build checks
 
 ## Tech stack
 
@@ -31,7 +54,7 @@ A React frontend for the NC News REST API. The app supports public article brows
 | Styling | Tailwind CSS + DaisyUI |
 | Build | Vite |
 | Hosting | Netlify |
-| API | Node.js / Express / PostgreSQL backend on Render |
+| API | Node.js / Express / PostgreSQL on Render |
 
 ## Local setup
 
@@ -43,15 +66,13 @@ cp .env.example .env
 npm run dev
 ```
 
-The frontend defaults to the live API if `VITE_API_URL` is not set.
-
 ## Environment
 
 ```text
 VITE_API_URL=https://nc-news-vvdv.onrender.com/api
 ```
 
-This is a public frontend configuration value, not a secret. Authentication tokens are created by the backend after login/registration.
+`VITE_API_URL` is public frontend configuration, not a secret. Authentication tokens are issued by the backend after login or registration.
 
 ## Checks
 

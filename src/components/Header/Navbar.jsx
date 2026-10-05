@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/userContext";
+import Avatar from "../UI/Avatar";
 
 function NavBar() {
   const { loggedUser, isAuthLoading, logout } = useContext(UserContext);
@@ -20,15 +21,18 @@ function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
           <NavLink
             to="/"
-            className="text-lg font-black tracking-tight text-slate-950"
+            className="mr-2 text-lg font-black tracking-tight text-slate-950"
           >
             NC<span className="text-indigo-600">News</span>
           </NavLink>
           <NavLink to="/articles" className={linkClass}>
             Articles
+          </NavLink>
+          <NavLink to="/users" className={linkClass}>
+            Community
           </NavLink>
         </div>
 
@@ -36,8 +40,12 @@ function NavBar() {
           <div className="flex items-center gap-2">
             {loggedUser ? (
               <>
-                <NavLink to="/userProfile" className={linkClass}>
-                  {loggedUser.username}
+                <NavLink
+                  to="/userProfile"
+                  className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                >
+                  <Avatar user={loggedUser} size="sm" />
+                  <span className="hidden sm:inline">{loggedUser.username}</span>
                 </NavLink>
                 <button
                   type="button"

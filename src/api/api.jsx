@@ -3,6 +3,7 @@ import axios from "axios";
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "https://nc-news-vvdv.onrender.com/api";
 const TOKEN_KEY = "ncNewsToken";
+const AUTH_EXPIRED_EVENT = "nc-news-auth-expired";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,6 +25,16 @@ api.interceptors.response.use(
     const status = error.response?.status || 500;
     const serverMessage =
       error.response?.data?.msg || error.response?.data?.message;
+    const requestUrl = error.config?.url || "";
+
+    if (
+      status === 401 &&
+      localStorage.getItem(TOKEN_KEY) &&
+      !requestUrl.includes("/users/login")
+    ) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
 
     const fallbackMessages = {
       400: "Please check the information you entered and try again.",
@@ -67,6 +78,12 @@ const fetchArticle = (articleId) =>
 const fetchTopics = () =>
   api.get("/topics").then((response) => response.data.topics);
 
+const fetchUsers = () =>
+  api.get("/users").then((response) => response.data.users);
+
+const fetchUser = (username) =>
+  api.get("/users/" + username).then((response) => response.data);
+
 const updateVotes = (articleId, voteInfo) =>
   api
     .patch("/articles/" + articleId, voteInfo)
@@ -98,6 +115,7 @@ const updateCurrentUser = (updates) =>
   api.patch("/users/me", updates).then((response) => response.data.user);
 
 export {
+  AUTH_EXPIRED_EVENT,
   addComment,
   deleteComment,
   fetchArticle,
@@ -105,6 +123,8 @@ export {
   fetchComments,
   fetchCurrentUser,
   fetchTopics,
+  fetchUser,
+  fetchUsers,
   loginUser,
   registerUser,
   updateCurrentUser,
