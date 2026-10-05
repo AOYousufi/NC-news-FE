@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
 
@@ -8,6 +8,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const errorId = useId();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,23 +44,30 @@ const Login = () => {
 
   return (
     <section className="relative mx-auto flex min-h-[72vh] max-w-6xl items-center justify-center overflow-hidden px-4 py-12 sm:px-6">
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-100 blur-3xl" />
+      <div className="pointer-events-none absolute left-[-7rem] top-12 -z-10 h-72 w-72 rounded-full bg-cyan-100/70 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-7rem] bottom-10 -z-10 h-80 w-80 rounded-full bg-indigo-100/80 blur-3xl" />
 
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
-          Welcome back
-        </p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
-          Log in to NC News
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Browsing stays public. Sign in when you want to vote, comment or
-          manage your profile.
-        </p>
+      <div className="w-full max-w-md overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-indigo-100/50">
+        <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-950 px-6 py-8 text-white sm:px-8">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-200">
+            Welcome back
+          </p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight">
+            Log in to NC News
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-300">
+            Browsing is always public. Sign in when you want to vote, comment or
+            manage your profile.
+          </p>
+        </div>
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        <form
+          className="space-y-5 p-6 sm:p-8"
+          onSubmit={handleSubmit}
+          aria-describedby={error ? errorId : undefined}
+        >
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Username</span>
+            <span className="text-sm font-bold text-slate-800">Username</span>
             <input
               type="text"
               autoComplete="username"
@@ -68,12 +76,12 @@ const Login = () => {
                 setUsername(event.target.value);
                 setError("");
               }}
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Password</span>
+            <span className="text-sm font-bold text-slate-800">Password</span>
             <input
               type="password"
               autoComplete="current-password"
@@ -82,15 +90,15 @@ const Login = () => {
                 setPassword(event.target.value);
                 setError("");
               }}
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
 
           {error && (
             <p
-              id="login-error"
+              id={errorId}
               role="alert"
-              className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
             >
               {error}
             </p>
@@ -99,27 +107,21 @@ const Login = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-indigo-600 px-4 py-3.5 font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Logging in..." : "Log in"}
+            {isSubmitting ? "Logging you in..." : "Log in"}
           </button>
+
+          <p className="pt-1 text-center text-sm text-slate-600">
+            New here?{" "}
+            <Link
+              to="/signup"
+              className="font-black text-indigo-700 underline decoration-indigo-200 underline-offset-4 transition hover:text-indigo-900"
+            >
+              Create an account
+            </Link>
+          </p>
         </form>
-
-        <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-300">
-          <span className="h-px flex-1 bg-slate-200" />
-          or
-          <span className="h-px flex-1 bg-slate-200" />
-        </div>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
-          New here?{" "}
-          <Link
-            to="/signup"
-            className="font-bold text-indigo-600 hover:text-indigo-700"
-          >
-            Create an account
-          </Link>
-        </p>
       </div>
     </section>
   );

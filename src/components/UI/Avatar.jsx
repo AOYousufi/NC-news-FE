@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
+
 function Avatar({ user, size = "md", className = "" }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
   const dimensions = {
     sm: "h-9 w-9 text-sm rounded-xl",
     md: "h-12 w-12 text-base rounded-2xl",
@@ -8,11 +12,16 @@ function Avatar({ user, size = "md", className = "" }) {
   const label = user?.name || user?.username || "User";
   const initial = label.charAt(0).toUpperCase();
 
-  if (user?.avatar_url) {
+  useEffect(() => {
+    setImageFailed(false);
+  }, [user?.avatar_url]);
+
+  if (user?.avatar_url && !imageFailed) {
     return (
       <img
         src={user.avatar_url}
         alt={label + " avatar"}
+        onError={() => setImageFailed(true)}
         className={
           dimensions[size] +
           " shrink-0 border border-slate-200 bg-slate-100 object-cover " +
@@ -24,6 +33,7 @@ function Avatar({ user, size = "md", className = "" }) {
 
   return (
     <div
+      role="img"
       aria-label={label + " avatar"}
       className={
         dimensions[size] +
