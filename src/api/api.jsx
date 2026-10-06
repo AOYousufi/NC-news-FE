@@ -5,12 +5,20 @@ const API_BASE_URL =
 const TOKEN_KEY = "ncNewsToken";
 const AUTH_EXPIRED_EVENT = "nc-news-auth-expired";
 
+const getStoredToken = () =>
+  localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+
+const clearStoredToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = getStoredToken();
 
   if (token) {
     config.headers.Authorization = "Bearer " + token;
@@ -29,10 +37,10 @@ api.interceptors.response.use(
 
     if (
       status === 401 &&
-      localStorage.getItem(TOKEN_KEY) &&
+      getStoredToken() &&
       !requestUrl.includes("/users/login")
     ) {
-      localStorage.removeItem(TOKEN_KEY);
+      clearStoredToken();
       window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
     }
 
@@ -89,6 +97,9 @@ const deleteArticle = (articleId) =>
 const fetchTopics = () =>
   api.get("/topics").then((response) => response.data.topics);
 
+const createTopic = (topic) =>
+  api.post("/topics", topic).then((response) => response.data.topic);
+
 const fetchUsers = () =>
   api.get("/users").then((response) => response.data.users);
 
@@ -99,6 +110,11 @@ const updateVotes = (articleId, voteInfo) =>
   api
     .patch("/articles/" + articleId, voteInfo)
     .then((response) => response.data.article);
+
+const fetchArticleVote = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/vote")
+    .then((response) => response.data);
 
 const fetchComments = (articleId) =>
   api
@@ -127,17 +143,22 @@ const updateCurrentUser = (updates) =>
 
 export {
   AUTH_EXPIRED_EVENT,
+  TOKEN_KEY,
   addComment,
+  clearStoredToken,
   createArticle,
+  createTopic,
   deleteArticle,
   deleteComment,
   fetchArticle,
+  fetchArticleVote,
   fetchArticles,
   fetchComments,
   fetchCurrentUser,
   fetchTopics,
   fetchUser,
   fetchUsers,
+  getStoredToken,
   loginUser,
   registerUser,
   updateArticleContent,

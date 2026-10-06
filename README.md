@@ -14,6 +14,7 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 
 - Browse articles without an account
 - Topic navigation and URL-based sorting
+- Authenticated topic creation directly from the article editor
 - Paginated article feed
 - Public community directory
 - Public user profiles with each user's articles
@@ -24,7 +25,7 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 
 - Register with username/password
 - Log in with the backend authentication API
-- Bearer-token session persistence
+- Choice between browser-session sign-in and persistent device sign-in
 - Automatic current-user restoration
 - Expired/invalid session cleanup
 - Update profile name and avatar
@@ -35,7 +36,7 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 - Create and publish articles as the authenticated user
 - Edit only your own article content
 - Delete only your own articles with an explicit confirmation step
-- Vote on articles
+- Vote on other users' articles with persistent Agree/Disagree state and instant switching
 - Post comments as the authenticated user
 - Delete only your own comments
 

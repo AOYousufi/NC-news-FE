@@ -7,24 +7,25 @@ import {
 } from "react";
 import {
   AUTH_EXPIRED_EVENT,
+  TOKEN_KEY,
+  clearStoredToken,
   fetchCurrentUser,
+  getStoredToken,
   loginUser,
   registerUser,
   updateCurrentUser,
 } from "../src/api/api";
 
-const TOKEN_KEY = "ncNewsToken";
-
 export const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
   const [loggedUser, setLoggedUser] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(
-    Boolean(localStorage.getItem(TOKEN_KEY))
+  const [isAuthLoading, setIsAuthLoading] = useState(() =>
+    Boolean(getStoredToken())
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    clearStoredToken();
     setLoggedUser(null);
   }, []);
 
@@ -38,7 +39,7 @@ export const UserProvider = ({ children }) => {
   }, [logout]);
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = getStoredToken();
 
     if (!token) {
       setIsAuthLoading(false);
@@ -63,19 +64,25 @@ export const UserProvider = ({ children }) => {
     };
   }, [logout]);
 
-  const saveSession = useCallback(({ user, token }) => {
-    localStorage.setItem(TOKEN_KEY, token);
+  const saveSession = useCallback(({ user, token }, rememberMe = false) => {
+    clearStoredToken();
+
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem(TOKEN_KEY, token);
+
     setLoggedUser(user);
     return user;
   }, []);
 
   const login = useCallback(
-    async (credentials) => saveSession(await loginUser(credentials)),
+    async (credentials, rememberMe = false) =>
+      saveSession(await loginUser(credentials), rememberMe),
     [saveSession]
   );
 
   const register = useCallback(
-    async (details) => saveSession(await registerUser(details)),
+    async (details, rememberMe = false) =>
+      saveSession(await registerUser(details), rememberMe),
     [saveSession]
   );
 

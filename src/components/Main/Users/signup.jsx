@@ -12,6 +12,7 @@ const SignUp = () => {
     password: "",
     confirmPassword: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formHelpId = useId();
@@ -19,9 +20,7 @@ const SignUp = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loggedUser) {
-      navigate("/articles", { replace: true });
-    }
+    if (loggedUser) navigate("/articles", { replace: true });
   }, [loggedUser, navigate]);
 
   const updateField = (event) => {
@@ -34,10 +33,7 @@ const SignUp = () => {
 
   const updateAvatar = (avatarUrl) => {
     setError("");
-    setForm((current) => ({
-      ...current,
-      avatar_url: avatarUrl,
-    }));
+    setForm((current) => ({ ...current, avatar_url: avatarUrl }));
   };
 
   const handleSubmit = async (event) => {
@@ -69,12 +65,15 @@ const SignUp = () => {
     setIsSubmitting(true);
 
     try {
-      await register({
-        username: form.username.trim(),
-        name: form.name.trim(),
-        avatar_url: form.avatar_url.trim() || undefined,
-        password: form.password,
-      });
+      await register(
+        {
+          username: form.username.trim(),
+          name: form.name.trim(),
+          avatar_url: form.avatar_url.trim() || undefined,
+          password: form.password,
+        },
+        rememberMe
+      );
       navigate("/articles");
     } catch (err) {
       setError(
@@ -102,8 +101,8 @@ const SignUp = () => {
             id={formHelpId}
             className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base"
           >
-            Browse without an account, or sign up to vote, comment and manage
-            your public profile.
+            Browse without an account, or sign up to vote, comment, publish and
+            manage your public profile.
           </p>
         </div>
 
@@ -121,15 +120,8 @@ const SignUp = () => {
                 onChange={updateField}
                 autoComplete="username"
                 placeholder="e.g. ozair_dev"
-                aria-describedby="username-help"
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
-              <span
-                id="username-help"
-                className="mt-2 block text-xs leading-5 text-slate-500"
-              >
-                3–30 characters. Letters, numbers, underscores and hyphens only.
-              </span>
             </label>
 
             <label className="block">
@@ -142,7 +134,7 @@ const SignUp = () => {
                 onChange={updateField}
                 autoComplete="name"
                 placeholder="How people will see you"
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
           </div>
@@ -165,15 +157,8 @@ const SignUp = () => {
                 onChange={updateField}
                 autoComplete="new-password"
                 placeholder="At least 8 characters"
-                aria-describedby="password-help"
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
-              <span
-                id="password-help"
-                className="mt-2 block text-xs leading-5 text-slate-500"
-              >
-                Use 8 or more characters. A password manager is even better.
-              </span>
             </label>
 
             <label className="block">
@@ -186,11 +171,28 @@ const SignUp = () => {
                 value={form.confirmPassword}
                 onChange={updateField}
                 autoComplete="new-password"
-                placeholder="Type it again"
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
           </div>
+
+          <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span>
+              <span className="block text-sm font-black text-slate-800">
+                Keep me signed in on this device
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">
+                If off, refreshes are still fine but the saved session ends
+                when your browser session ends.
+              </span>
+            </span>
+          </label>
 
           {error && (
             <p
@@ -205,7 +207,7 @@ const SignUp = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 hover:shadow-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "Creating your account..." : "Create account"}
           </button>
@@ -214,7 +216,7 @@ const SignUp = () => {
             Already registered?{" "}
             <Link
               to="/login"
-              className="font-black text-indigo-700 underline decoration-indigo-200 underline-offset-4 transition hover:text-indigo-900 hover:decoration-indigo-400"
+              className="font-black text-indigo-700 underline decoration-indigo-200 underline-offset-4"
             >
               Log in
             </Link>

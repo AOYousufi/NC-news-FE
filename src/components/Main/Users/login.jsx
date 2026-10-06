@@ -6,15 +6,14 @@ const Login = () => {
   const { loggedUser, login } = useContext(UserContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const errorId = useId();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loggedUser) {
-      navigate("/articles", { replace: true });
-    }
+    if (loggedUser) navigate("/articles", { replace: true });
   }, [loggedUser, navigate]);
 
   const handleSubmit = async (event) => {
@@ -29,7 +28,7 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      await login({ username: username.trim(), password });
+      await login({ username: username.trim(), password }, rememberMe);
       navigate("/articles");
     } catch (err) {
       setError(
@@ -56,8 +55,7 @@ const Login = () => {
             Log in to NC News
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            Browsing is always public. Sign in when you want to vote, comment or
-            manage your profile.
+            Sign in to vote, comment, publish and manage your own stories.
           </p>
         </div>
 
@@ -92,6 +90,24 @@ const Login = () => {
               }}
               className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
+          </label>
+
+          <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span>
+              <span className="block text-sm font-black text-slate-800">
+                Keep me signed in on this device
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">
+                Refreshing will keep you signed in either way. Turn this on if
+                you also want your sign-in remembered after closing the browser.
+              </span>
+            </span>
           </label>
 
           {error && (

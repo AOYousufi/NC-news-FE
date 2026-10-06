@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { fetchTopics } from "../../../api/api";
+import { createTopic, fetchTopics } from "../../../api/api";
 
 const EMPTY_ARTICLE = {
   title: "",
@@ -21,6 +21,13 @@ function ArticleEditorForm({
   const [topics, setTopics] = useState([]);
   const [topicsError, setTopicsError] = useState("");
   const [validationError, setValidationError] = useState("");
+  const [showTopicCreator, setShowTopicCreator] = useState(false);
+  const [topicDraft, setTopicDraft] = useState({
+    slug: "",
+    description: "",
+  });
+  const [topicCreateError, setTopicCreateError] = useState("");
+  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const formHelpId = useId();
 
   useEffect(() => {
@@ -39,6 +46,41 @@ function ArticleEditorForm({
       ...current,
       [event.target.name]: event.target.value,
     }));
+  };
+
+  const handleCreateTopic = async () => {
+    setTopicCreateError("");
+
+    const slug = topicDraft.slug.trim().toLowerCase();
+    const description = topicDraft.description.trim();
+
+    if (!/^[a-z0-9-]{2,40}$/.test(slug)) {
+      setTopicCreateError(
+        "Topic slug must be 2–40 characters using lowercase letters, numbers or hyphens."
+      );
+      return;
+    }
+
+    if (description.length < 3) {
+      setTopicCreateError("Add a short description for the topic.");
+      return;
+    }
+
+    setIsCreatingTopic(true);
+
+    try {
+      const topic = await createTopic({ slug, description });
+      setTopics((current) =>
+        [...current, topic].sort((a, b) => a.slug.localeCompare(b.slug))
+      );
+      setForm((current) => ({ ...current, topic: topic.slug }));
+      setTopicDraft({ slug: "", description: "" });
+      setShowTopicCreator(false);
+    } catch (error) {
+      setTopicCreateError(error.message);
+    } finally {
+      setIsCreatingTopic(false);
+    }
   };
 
   const handleSubmit = (event) => {
@@ -106,25 +148,96 @@ function ArticleEditorForm({
             />
           </label>
 
-          <label className="block">
-            <span className="text-sm font-black text-slate-800">Topic</span>
-            <select
-              name="topic"
-              value={form.topic}
-              onChange={updateField}
-              disabled={!topics.length}
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:bg-slate-100"
-            >
-              <option value="">
-                {topics.length ? "Choose a topic" : "Loading topics..."}
-              </option>
-              {topics.map((topic) => (
-                <option key={topic.slug} value={topic.slug}>
-                  {topic.slug}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <label className="min-w-0 flex-1">
+                <span className="text-sm font-black text-slate-800">Topic</span>
+                <select
+                  name="topic"
+                  value={form.topic}
+                  onChange={updateField}
+                  disabled={!topics.length}
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:bg-slate-100"
+                >
+                  <option value="">
+                    {topics.length ? "Choose a topic" : "Loading topics..."}
+                  </option>
+                  {topics.map((topic) => (
+                    <option key={topic.slug} value={topic.slug}>
+                      {topic.slug}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTopicCreator((current) => !current);
+                  setTopicCreateError("");
+                }}
+                className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
+              >
+                {showTopicCreator ? "Cancel" : "+ New topic"}
+              </button>
+            </div>
+
+            {showTopicCreator && (
+              <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-2">
+                <label>
+                  <span className="text-sm font-bold text-slate-700">
+                    Topic slug
+                  </span>
+                  <input
+                    value={topicDraft.slug}
+                    onChange={(event) =>
+                      setTopicDraft((current) => ({
+                        ...current,
+                        slug: event.target.value,
+                      }))
+                    }
+                    placeholder="e.g. technology"
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  />
+                </label>
+
+                <label>
+                  <span className="text-sm font-bold text-slate-700">
+                    Description
+                  </span>
+                  <input
+                    value={topicDraft.description}
+                    onChange={(event) =>
+                      setTopicDraft((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    placeholder="What belongs in this topic?"
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  />
+                </label>
+
+                {topicCreateError && (
+                  <p
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:col-span-2"
+                  >
+                    {topicCreateError}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleCreateTopic}
+                  disabled={isCreatingTopic}
+                  className="w-fit rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60 sm:col-span-2"
+                >
+                  {isCreatingTopic ? "Creating topic..." : "Create and select"}
+                </button>
+              </div>
+            )}
+          </div>
 
           <label className="block">
             <span className="text-sm font-black text-slate-800">
@@ -138,10 +251,6 @@ function ArticleEditorForm({
               placeholder="Write the story here..."
               className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3.5 leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
-            <span className="mt-2 block text-xs leading-5 text-slate-500">
-              Plain text is kept intentionally simple for now. Paragraph breaks
-              are preserved when the article is displayed.
-            </span>
           </label>
 
           <div className="grid gap-5 lg:grid-cols-[1fr_260px] lg:items-end">
@@ -156,7 +265,7 @@ function ArticleEditorForm({
                 value={form.article_img_url || ""}
                 onChange={updateField}
                 placeholder="https://example.com/story-image.jpg"
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
 
@@ -186,8 +295,7 @@ function ArticleEditorForm({
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6">
             <p className="max-w-xl text-sm leading-6 text-slate-500">
-              Your account is automatically recorded as the author. The
-              frontend never sends a different username for ownership.
+              Your account is automatically recorded as the author.
             </p>
             <button
               type="submit"

@@ -4,6 +4,7 @@ import { UserContext } from "../../../../Context/userContext";
 import {
   deleteArticle,
   fetchArticle,
+  fetchArticleVote,
   updateVotes,
 } from "../../../api/api";
 import Error from "../../UI/error";
@@ -19,8 +20,9 @@ function SingleArticle() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState("");
   const [votes, setVotes] = useState(0);
-  const [hasVoted, setHasVoted] = useState(false);
+  const [userVote, setUserVote] = useState(0);
   const [isVoting, setIsVoting] = useState(false);
+  const [isVoteLoading, setIsVoteLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -29,7 +31,7 @@ function SingleArticle() {
     setError(null);
     setActionError("");
     setArticle(null);
-    setHasVoted(false);
+    setUserVote(0);
     setShowDeleteConfirm(false);
 
     fetchArticle(article_id)
@@ -40,23 +42,55 @@ function SingleArticle() {
       .catch(setError);
   }, [article_id]);
 
-  const handleVote = async (change) => {
-    if (!loggedUser || hasVoted || isVoting) return;
+  useEffect(() => {
+    if (!article || !loggedUser || loggedUser.username === article.author) {
+      setUserVote(0);
+      return;
+    }
 
+    let active = true;
+    setIsVoteLoading(true);
+
+    fetchArticleVote(article.article_id)
+      .then(({ vote }) => {
+        if (active) setUserVote(vote);
+      })
+      .catch(() => {
+        if (active) setUserVote(0);
+      })
+      .finally(() => {
+        if (active) setIsVoteLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [article, loggedUser]);
+
+  const ownsArticle = loggedUser?.username === article?.author;
+
+  const handleVote = async (choice) => {
+    if (!loggedUser || ownsArticle || isVoting || isVoteLoading) return;
+
+    const previousVote = userVote;
     const previousVotes = votes;
-    setVotes((current) => current + change);
-    setHasVoted(true);
+    const nextVote = previousVote === choice ? 0 : choice;
+    const delta = nextVote - previousVote;
+
+    setUserVote(nextVote);
+    setVotes((current) => current + delta);
     setIsVoting(true);
     setActionError("");
 
     try {
       const updated = await updateVotes(article.article_id, {
-        inc_votes: change,
+        inc_votes: choice,
       });
       setVotes(updated.votes);
+      setUserVote(updated.user_vote);
     } catch (err) {
       setVotes(previousVotes);
-      setHasVoted(false);
+      setUserVote(previousVote);
       setActionError(err.message);
     } finally {
       setIsVoting(false);
@@ -80,7 +114,6 @@ function SingleArticle() {
   if (error) return <Error error={error} />;
   if (!article) return <Loading />;
 
-  const ownsArticle = loggedUser?.username === article.author;
   const date = new Date(article.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "long",
@@ -202,38 +235,55 @@ function SingleArticle() {
               <span>{article.comment_count} comments</span>
             </div>
 
-            {loggedUser ? (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleVote(1)}
-                  disabled={hasVoted || isVoting}
-                  className="rounded-lg bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Agree
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleVote(-1)}
-                  disabled={hasVoted || isVoting}
-                  className="rounded-lg bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Disagree
-                </button>
-              </div>
-            ) : (
+            {!loggedUser ? (
               <Link
                 to="/login"
                 className="text-sm font-bold text-indigo-600 hover:text-indigo-700"
               >
                 Sign in to vote
               </Link>
+            ) : ownsArticle ? (
+              <p className="text-sm font-bold text-slate-400">
+                You cannot vote on your own article
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2" aria-label="Article vote">
+                <button
+                  type="button"
+                  aria-pressed={userVote === 1}
+                  onClick={() => handleVote(1)}
+                  disabled={isVoting || isVoteLoading}
+                  className={
+                    "rounded-xl px-4 py-2.5 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 " +
+                    (userVote === 1
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100")
+                  }
+                >
+                  {userVote === 1 ? "✓ Agreed" : "Agree"}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={userVote === -1}
+                  onClick={() => handleVote(-1)}
+                  disabled={isVoting || isVoteLoading}
+                  className={
+                    "rounded-xl px-4 py-2.5 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 " +
+                    (userVote === -1
+                      ? "bg-rose-600 text-white shadow-sm"
+                      : "bg-rose-50 text-rose-700 hover:bg-rose-100")
+                  }
+                >
+                  {userVote === -1 ? "✓ Disagreed" : "Disagree"}
+                </button>
+              </div>
             )}
           </div>
 
-          {hasVoted && !actionError && (
-            <p className="mt-4 text-sm font-semibold text-emerald-600">
-              Vote recorded. You can change it after refreshing the page.
+          {userVote !== 0 && !actionError && (
+            <p className="mt-4 text-sm font-semibold text-slate-500">
+              Your vote is saved. Choose the other option to switch instantly,
+              or click your active vote again to remove it.
             </p>
           )}
 
