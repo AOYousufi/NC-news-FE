@@ -61,7 +61,7 @@ const Articles = () => {
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-7 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-5 border-b border-slate-200 pb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
             Latest stories
@@ -70,12 +70,20 @@ const Articles = () => {
             Articles
           </h1>
           <p className="mt-2 max-w-2xl text-slate-500">
-            Browse the full feed as a guest. Sign in only when you want to vote,
-            comment or manage your profile.
+            Browse the full feed as a guest. Signed-in members can publish and
+            manage their own stories.
           </p>
         </div>
 
-        {!loggedUser && (
+        {loggedUser ? (
+          <Link
+            to="/articles/new"
+            className="inline-flex w-fit items-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700"
+          >
+            <span aria-hidden="true">＋</span>
+            Write article
+          </Link>
+        ) : (
           <Link
             to="/login"
             className="w-fit rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"

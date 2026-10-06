@@ -4,6 +4,8 @@ import NavBar from "./components/Header/Navbar";
 import Footer from "./components/Header/footer";
 import Home from "./components/Home";
 import Articles from "./components/Main/Articles/Articles";
+import CreateArticle from "./components/Main/Articles/CreateArticle";
+import EditArticle from "./components/Main/Articles/EditArticle";
 import ListArticlesByTopic from "./components/Main/Articles/ArticlesListedByTopic";
 import SingleArticle from "./components/Main/SingleArticle/singleArticle";
 import Login from "./components/Main/Users/login";
@@ -24,10 +26,12 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/articles" element={<Articles />} />
+              <Route path="/articles/new" element={<CreateArticle />} />
               <Route
                 path="/articles/topics/:topic"
                 element={<ListArticlesByTopic />}
               />
+              <Route path="/articles/:article_id/edit" element={<EditArticle />} />
               <Route path="/articles/:article_id" element={<SingleArticle />} />
               <Route path="/users" element={<Users />} />
               <Route path="/users/:username" element={<PublicUserProfile />} />

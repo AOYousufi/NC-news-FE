@@ -1,7 +1,11 @@
 import { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
-import { fetchArticle, updateVotes } from "../../../api/api";
+import {
+  deleteArticle,
+  fetchArticle,
+  updateVotes,
+} from "../../../api/api";
 import Error from "../../UI/error";
 import Loading from "../../UI/Loading";
 import PostComment from "./addNewComment";
@@ -9,6 +13,7 @@ import ArticleComments from "./articlesComments";
 
 function SingleArticle() {
   const { article_id } = useParams();
+  const navigate = useNavigate();
   const { loggedUser } = useContext(UserContext);
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
@@ -17,12 +22,15 @@ function SingleArticle() {
   const [hasVoted, setHasVoted] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [comments, setComments] = useState([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setError(null);
     setActionError("");
     setArticle(null);
     setHasVoted(false);
+    setShowDeleteConfirm(false);
 
     fetchArticle(article_id)
       .then((data) => {
@@ -55,9 +63,24 @@ function SingleArticle() {
     }
   };
 
+  const handleDelete = async () => {
+    setActionError("");
+    setIsDeleting(true);
+
+    try {
+      await deleteArticle(article.article_id);
+      navigate("/articles", { replace: true });
+    } catch (err) {
+      setActionError(err.message);
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (error) return <Error error={error} />;
   if (!article) return <Loading />;
 
+  const ownsArticle = loggedUser?.username === article.author;
   const date = new Date(article.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "long",
@@ -66,12 +89,70 @@ function SingleArticle() {
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link
-        to="/articles"
-        className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
-      >
-        ← Back to articles
-      </Link>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <Link
+          to="/articles"
+          className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-900"
+        >
+          ← Back to articles
+        </Link>
+
+        {ownsArticle && (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to={"/articles/" + article.article_id + "/edit"}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
+            >
+              Edit article
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="rounded-xl bg-rose-50 px-4 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-100"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showDeleteConfirm && ownsArticle && (
+        <div
+          role="alertdialog"
+          aria-labelledby="delete-article-title"
+          aria-describedby="delete-article-description"
+          className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-5"
+        >
+          <h2 id="delete-article-title" className="font-black text-rose-950">
+            Delete this article permanently?
+          </h2>
+          <p
+            id="delete-article-description"
+            className="mt-2 text-sm leading-6 text-rose-800"
+          >
+            The story and all comments underneath it will be removed. This
+            cannot be undone.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="rounded-xl bg-rose-700 px-4 py-2.5 text-sm font-black text-white transition hover:bg-rose-800 disabled:opacity-60"
+            >
+              {isDeleting ? "Deleting..." : "Yes, delete article"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={isDeleting}
+              className="rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-bold text-rose-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         {article.article_img_url && (
@@ -100,6 +181,11 @@ function SingleArticle() {
                 @{article.author}
               </Link>
             </span>
+            {ownsArticle && (
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black uppercase tracking-wide text-emerald-700">
+                Your article
+              </span>
+            )}
           </div>
 
           <h1 className="mt-5 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
@@ -154,7 +240,7 @@ function SingleArticle() {
           {actionError && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
             >
               {actionError}
             </p>

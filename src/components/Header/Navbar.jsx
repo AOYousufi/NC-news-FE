@@ -34,6 +34,14 @@ function NavBar() {
           <NavLink to="/users" className={linkClass}>
             Community
           </NavLink>
+          {loggedUser && (
+            <NavLink
+              to="/articles/new"
+              className="hidden rounded-lg bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 sm:inline-flex"
+            >
+              + Write
+            </NavLink>
+          )}
         </div>
 
         {!isAuthLoading && (

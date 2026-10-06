@@ -32,6 +32,9 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 
 ### Authenticated actions
 
+- Create and publish articles as the authenticated user
+- Edit only your own article content
+- Delete only your own articles with an explicit confirmation step
 - Vote on articles
 - Post comments as the authenticated user
 - Delete only your own comments
@@ -39,6 +42,8 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 ### Quality
 
 - Responsive layout
+- Reusable accessible create/edit article editor
+- Owner-only article management controls
 - Loading, empty and error states
 - Netlify SPA routing support
 - Environment-based API URL

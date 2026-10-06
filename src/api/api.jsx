@@ -75,6 +75,17 @@ const fetchArticle = (articleId) =>
     .get("/articles/" + articleId)
     .then((response) => response.data.article[0]);
 
+const createArticle = (article) =>
+  api.post("/articles", article).then((response) => response.data.article);
+
+const updateArticleContent = (articleId, updates) =>
+  api
+    .patch("/articles/" + articleId, updates)
+    .then((response) => response.data.article);
+
+const deleteArticle = (articleId) =>
+  api.delete("/articles/" + articleId).then(() => true);
+
 const fetchTopics = () =>
   api.get("/topics").then((response) => response.data.topics);
 
@@ -117,6 +128,8 @@ const updateCurrentUser = (updates) =>
 export {
   AUTH_EXPIRED_EVENT,
   addComment,
+  createArticle,
+  deleteArticle,
   deleteComment,
   fetchArticle,
   fetchArticles,
@@ -127,6 +140,7 @@ export {
   fetchUsers,
   loginUser,
   registerUser,
+  updateArticleContent,
   updateCurrentUser,
   updateVotes,
 };
