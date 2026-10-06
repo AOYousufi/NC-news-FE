@@ -3,9 +3,11 @@ import { UserProvider } from "../Context/userContext";
 import NavBar from "./components/Header/Navbar";
 import Footer from "./components/Header/footer";
 import Home from "./components/Home";
+import Dashboard from "./components/Dashboard/Dashboard";
 import Articles from "./components/Main/Articles/Articles";
 import CreateArticle from "./components/Main/Articles/CreateArticle";
 import EditArticle from "./components/Main/Articles/EditArticle";
+import FollowingFeed from "./components/Main/Articles/FollowingFeed";
 import ListArticlesByTopic from "./components/Main/Articles/ArticlesListedByTopic";
 import SingleArticle from "./components/Main/SingleArticle/singleArticle";
 import Login from "./components/Main/Users/login";
@@ -25,6 +27,8 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/following" element={<FollowingFeed />} />
               <Route path="/articles" element={<Articles />} />
               <Route path="/articles/new" element={<CreateArticle />} />
               <Route

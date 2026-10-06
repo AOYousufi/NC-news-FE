@@ -10,8 +10,8 @@ const EMPTY_ARTICLE = {
 
 function ArticleEditorForm({
   initialValues = EMPTY_ARTICLE,
+  initialStatus = "published",
   onSubmit,
-  submitLabel,
   heading,
   description,
   isSubmitting,
@@ -22,10 +22,7 @@ function ArticleEditorForm({
   const [topicsError, setTopicsError] = useState("");
   const [validationError, setValidationError] = useState("");
   const [showTopicCreator, setShowTopicCreator] = useState(false);
-  const [topicDraft, setTopicDraft] = useState({
-    slug: "",
-    description: "",
-  });
+  const [topicDraft, setTopicDraft] = useState({ slug: "", description: "" });
   const [topicCreateError, setTopicCreateError] = useState("");
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const formHelpId = useId();
@@ -52,7 +49,7 @@ function ArticleEditorForm({
     setTopicCreateError("");
 
     const slug = topicDraft.slug.trim().toLowerCase();
-    const description = topicDraft.description.trim();
+    const topicDescription = topicDraft.description.trim();
 
     if (!/^[a-z0-9-]{2,40}$/.test(slug)) {
       setTopicCreateError(
@@ -61,7 +58,7 @@ function ArticleEditorForm({
       return;
     }
 
-    if (description.length < 3) {
+    if (topicDescription.length < 3) {
       setTopicCreateError("Add a short description for the topic.");
       return;
     }
@@ -69,7 +66,10 @@ function ArticleEditorForm({
     setIsCreatingTopic(true);
 
     try {
-      const topic = await createTopic({ slug, description });
+      const topic = await createTopic({
+        slug,
+        description: topicDescription,
+      });
       setTopics((current) =>
         [...current, topic].sort((a, b) => a.slug.localeCompare(b.slug))
       );
@@ -83,8 +83,7 @@ function ArticleEditorForm({
     }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const buildArticle = () => {
     setValidationError("");
 
     const title = form.title.trim();
@@ -93,31 +92,58 @@ function ArticleEditorForm({
 
     if (!title || !topic || !body) {
       setValidationError("Title, topic and article body are required.");
-      return;
+      return null;
     }
 
     if (title.length > 300) {
       setValidationError("Title must be 300 characters or fewer.");
-      return;
+      return null;
     }
 
-    onSubmit({
+    return {
       title,
       topic,
       body,
       article_img_url: form.article_img_url.trim() || null,
-    });
+    };
+  };
+
+  const submitAs = (status) => {
+    const article = buildArticle();
+    if (!article) return;
+    onSubmit({ ...article, status });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    submitAs("published");
   };
 
   const visibleError = validationError || serverError || topicsError;
+  const draftLabel =
+    initialStatus === "draft" ? "Save draft" : "Move to drafts";
+  const publishLabel =
+    initialStatus === "draft" ? "Publish article" : "Save changes";
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
         <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-950 px-6 py-9 text-white sm:px-10">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-indigo-200">
-            Publisher
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-indigo-200">
+              Publisher
+            </p>
+            <span
+              className={
+                "rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-wide " +
+                (initialStatus === "draft"
+                  ? "bg-amber-400/15 text-amber-200"
+                  : "bg-emerald-400/15 text-emerald-200")
+              }
+            >
+              {initialStatus}
+            </span>
+          </div>
           <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
             {heading}
           </h1>
@@ -293,17 +319,29 @@ function ArticleEditorForm({
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6">
+          <div className="flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-xl text-sm leading-6 text-slate-500">
-              Your account is automatically recorded as the author.
+              Drafts are private. Publishing makes the story visible in public
+              feeds and on your profile.
             </p>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-xl bg-indigo-600 px-6 py-3.5 font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? "Saving..." : submitLabel}
-            </button>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => submitAs("draft")}
+                disabled={isSubmitting}
+                className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-3 font-black text-amber-800 transition hover:bg-amber-100 disabled:opacity-60"
+              >
+                {isSubmitting ? "Saving..." : draftLabel}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-xl bg-indigo-600 px-6 py-3 font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+              >
+                {isSubmitting ? "Saving..." : publishLabel}
+              </button>
+            </div>
           </div>
         </form>
       </div>

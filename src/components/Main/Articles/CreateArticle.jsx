@@ -25,7 +25,11 @@ function CreateArticle() {
 
     try {
       const created = await createArticle(article);
-      navigate("/articles/" + created.article_id);
+      navigate(
+        created.status === "draft"
+          ? "/dashboard"
+          : "/articles/" + created.article_id
+      );
     } catch (err) {
       setError(err.message);
       setIsSubmitting(false);
@@ -34,9 +38,9 @@ function CreateArticle() {
 
   return (
     <ArticleEditorForm
-      heading="Publish a new story"
-      description="Create something worth discussing. Your signed-in account becomes the author automatically, and only you will be able to edit or delete it."
-      submitLabel="Publish article"
+      initialStatus="draft"
+      heading="Write a new story"
+      description="Start privately as a draft or publish when it is ready. Your signed-in account is always the author."
       onSubmit={handleCreate}
       isSubmitting={isSubmitting}
       serverError={error}

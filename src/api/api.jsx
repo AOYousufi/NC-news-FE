@@ -13,17 +13,11 @@ const clearStoredToken = () => {
   sessionStorage.removeItem(TOKEN_KEY);
 };
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-});
+const api = axios.create({ baseURL: API_BASE_URL });
 
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
-
-  if (token) {
-    config.headers.Authorization = "Bearer " + token;
-  }
-
+  if (token) config.headers.Authorization = "Bearer " + token;
   return config;
 });
 
@@ -73,15 +67,16 @@ const fetchArticles = ({
   p,
 } = {}) =>
   api
-    .get("/articles", {
-      params: { sort_by, order, topic, author, limit, p },
-    })
+    .get("/articles", { params: { sort_by, order, topic, author, limit, p } })
     .then((response) => response.data.articles);
 
 const fetchArticle = (articleId) =>
+  api.get("/articles/" + articleId).then((response) => response.data.article[0]);
+
+const fetchManagedArticle = (articleId) =>
   api
-    .get("/articles/" + articleId)
-    .then((response) => response.data.article[0]);
+    .get("/articles/" + articleId + "/manage")
+    .then((response) => response.data.article);
 
 const createArticle = (article) =>
   api.post("/articles", article).then((response) => response.data.article);
@@ -94,6 +89,20 @@ const updateArticleContent = (articleId, updates) =>
 const deleteArticle = (articleId) =>
   api.delete("/articles/" + articleId).then(() => true);
 
+const fetchDrafts = () =>
+  api.get("/articles/drafts").then((response) => response.data.articles);
+
+const fetchFollowingFeed = ({ limit = 20, p = 1 } = {}) =>
+  api
+    .get("/articles/feed", { params: { limit, p } })
+    .then((response) => response.data.articles);
+
+const saveArticle = (articleId) =>
+  api.post("/articles/" + articleId + "/save").then(() => true);
+
+const unsaveArticle = (articleId) =>
+  api.delete("/articles/" + articleId + "/save").then(() => true);
+
 const fetchTopics = () =>
   api.get("/topics").then((response) => response.data.topics);
 
@@ -105,6 +114,26 @@ const fetchUsers = () =>
 
 const fetchUser = (username) =>
   api.get("/users/" + username).then((response) => response.data);
+
+const fetchActivity = () =>
+  api.get("/users/me/activity").then((response) => response.data);
+
+const fetchSavedArticles = () =>
+  api.get("/users/me/saved").then((response) => response.data.articles);
+
+const fetchFollowing = () =>
+  api.get("/users/me/following").then((response) => response.data.users);
+
+const fetchFollowStatus = (username) =>
+  api
+    .get("/users/" + username + "/follow-status")
+    .then((response) => response.data);
+
+const followUser = (username) =>
+  api.post("/users/" + username + "/follow").then(() => true);
+
+const unfollowUser = (username) =>
+  api.delete("/users/" + username + "/follow").then(() => true);
 
 const updateVotes = (articleId, voteInfo) =>
   api
@@ -150,17 +179,28 @@ export {
   createTopic,
   deleteArticle,
   deleteComment,
+  fetchActivity,
   fetchArticle,
   fetchArticleVote,
   fetchArticles,
   fetchComments,
   fetchCurrentUser,
+  fetchDrafts,
+  fetchFollowStatus,
+  fetchFollowing,
+  fetchFollowingFeed,
+  fetchManagedArticle,
+  fetchSavedArticles,
   fetchTopics,
   fetchUser,
   fetchUsers,
+  followUser,
   getStoredToken,
   loginUser,
   registerUser,
+  saveArticle,
+  unfollowUser,
+  unsaveArticle,
   updateArticleContent,
   updateCurrentUser,
   updateVotes,

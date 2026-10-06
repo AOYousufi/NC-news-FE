@@ -1,8 +1,204 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
-import { deleteComment, fetchComments } from "../../../api/api";
+import {
+  addComment,
+  deleteComment,
+  fetchComments,
+} from "../../../api/api";
 import Loading from "../../UI/Loading";
+
+function buildCommentTree(comments) {
+  const nodes = new Map(
+    comments.map((comment) => [
+      comment.comment_id,
+      { ...comment, replies: [] },
+    ])
+  );
+
+  const roots = [];
+
+  nodes.forEach((comment) => {
+    if (
+      comment.parent_comment_id &&
+      nodes.has(comment.parent_comment_id)
+    ) {
+      nodes.get(comment.parent_comment_id).replies.push(comment);
+    } else {
+      roots.push(comment);
+    }
+  });
+
+  const newestFirst = (a, b) =>
+    new Date(b.created_at) - new Date(a.created_at);
+  const oldestFirst = (a, b) =>
+    new Date(a.created_at) - new Date(b.created_at);
+
+  roots.sort(newestFirst);
+  nodes.forEach((comment) => comment.replies.sort(oldestFirst));
+
+  return roots;
+}
+
+function CommentNode({
+  comment,
+  articleId,
+  depth,
+  loggedUser,
+  refresh,
+  deletingId,
+  setDeletingId,
+  setError,
+}) {
+  const [isReplying, setIsReplying] = useState(false);
+  const [reply, setReply] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const ownsComment = loggedUser?.username === comment.author;
+  const date = new Date(comment.created_at).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  const submitReply = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (!reply.trim()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await addComment(articleId, {
+        body: reply.trim(),
+        parent_comment_id: comment.comment_id,
+      });
+      setReply("");
+      setIsReplying(false);
+      await refresh();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const removeComment = async () => {
+    setDeletingId(comment.comment_id);
+    setError("");
+
+    try {
+      await deleteComment(comment.comment_id);
+      await refresh();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div
+      className={
+        depth > 0
+          ? "ml-3 border-l-2 border-indigo-100 pl-3 sm:ml-7 sm:pl-5"
+          : ""
+      }
+    >
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <Link
+              to={"/users/" + comment.author}
+              className="font-black text-slate-900 transition hover:text-indigo-700"
+            >
+              @{comment.author}
+            </Link>
+            <p className="mt-1 text-xs font-medium text-slate-400">
+              {date}
+              {comment.votes !== undefined ? " · " + comment.votes + " votes" : ""}
+            </p>
+          </div>
+
+          <div className="flex gap-1">
+            {loggedUser && (
+              <button
+                type="button"
+                onClick={() => setIsReplying((current) => !current)}
+                className="rounded-lg px-3 py-2 text-xs font-black text-indigo-600 transition hover:bg-indigo-50"
+              >
+                {isReplying ? "Cancel" : "Reply"}
+              </button>
+            )}
+
+            {ownsComment && (
+              <button
+                type="button"
+                onClick={removeComment}
+                disabled={deletingId === comment.comment_id}
+                className="rounded-lg px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+              >
+                {deletingId === comment.comment_id ? "Deleting..." : "Delete"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-4 whitespace-pre-line break-words leading-7 text-slate-700">
+          {comment.body}
+        </p>
+
+        {isReplying && (
+          <form
+            onSubmit={submitReply}
+            className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3"
+          >
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-wide text-indigo-700">
+                Reply to @{comment.author}
+              </span>
+              <textarea
+                value={reply}
+                onChange={(event) => setReply(event.target.value)}
+                rows={3}
+                placeholder="Write a reply..."
+                className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+            </label>
+            <div className="mt-2 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting || !reply.trim()}
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white disabled:opacity-50"
+              >
+                {isSubmitting ? "Replying..." : "Post reply"}
+              </button>
+            </div>
+          </form>
+        )}
+      </article>
+
+      {comment.replies.length > 0 && (
+        <div className="mt-3 space-y-3">
+          {comment.replies.map((replyComment) => (
+            <CommentNode
+              key={replyComment.comment_id}
+              comment={replyComment}
+              articleId={articleId}
+              depth={Math.min(depth + 1, 5)}
+              loggedUser={loggedUser}
+              refresh={refresh}
+              deletingId={deletingId}
+              setDeletingId={setDeletingId}
+              setError={setError}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ArticleComments({ article_id, comments, setComments }) {
   const { loggedUser } = useContext(UserContext);
@@ -10,33 +206,22 @@ function ArticleComments({ article_id, comments, setComments }) {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
+  const refresh = useCallback(async () => {
+    const nextComments = await fetchComments(article_id);
+    setComments(nextComments);
+    return nextComments;
+  }, [article_id, setComments]);
+
   useEffect(() => {
     setIsLoading(true);
     setError("");
 
-    fetchComments(article_id)
-      .then(setComments)
+    refresh()
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
-  }, [article_id, setComments]);
+  }, [refresh]);
 
-  const handleDelete = async (commentId) => {
-    const previous = comments;
-    setDeletingId(commentId);
-    setError("");
-    setComments((current) =>
-      current.filter((comment) => comment.comment_id !== commentId)
-    );
-
-    try {
-      await deleteComment(commentId);
-    } catch (err) {
-      setComments(previous);
-      setError(err.message);
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const tree = useMemo(() => buildCommentTree(comments), [comments]);
 
   if (isLoading) return <Loading compact />;
 
@@ -48,7 +233,7 @@ function ArticleComments({ article_id, comments, setComments }) {
             Discussion
           </p>
           <h2 className="mt-1 text-2xl font-black text-slate-950">
-            Comments
+            Conversation
           </h2>
         </div>
         <span className="text-sm font-semibold text-slate-500">
@@ -65,59 +250,25 @@ function ArticleComments({ article_id, comments, setComments }) {
         </p>
       )}
 
-      {comments.length === 0 ? (
+      {tree.length === 0 ? (
         <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
           No comments yet. Be the first to start the discussion.
         </div>
       ) : (
-        <div className="mt-5 space-y-3">
-          {comments.map((comment) => {
-            const ownsComment = loggedUser?.username === comment.author;
-            const date = new Date(comment.created_at).toLocaleDateString(
-              undefined,
-              {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              }
-            );
-
-            return (
-              <article
-                key={comment.comment_id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <Link
-                      to={"/users/" + comment.author}
-                      className="font-black text-slate-900 transition hover:text-indigo-700"
-                    >
-                      @{comment.author}
-                    </Link>
-                    <p className="mt-1 text-xs font-medium text-slate-400">
-                      {date} · {comment.votes} votes
-                    </p>
-                  </div>
-
-                  {ownsComment && (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(comment.comment_id)}
-                      disabled={deletingId === comment.comment_id}
-                      className="rounded-lg px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
-                    >
-                      {deletingId === comment.comment_id ? "Deleting..." : "Delete"}
-                    </button>
-                  )}
-                </div>
-
-                <p className="mt-4 whitespace-pre-line break-words leading-7 text-slate-700">
-                  {comment.body}
-                </p>
-              </article>
-            );
-          })}
+        <div className="mt-5 space-y-4">
+          {tree.map((comment) => (
+            <CommentNode
+              key={comment.comment_id}
+              comment={comment}
+              articleId={article_id}
+              depth={0}
+              loggedUser={loggedUser}
+              refresh={refresh}
+              deletingId={deletingId}
+              setDeletingId={setDeletingId}
+              setError={setError}
+            />
+          ))}
         </div>
       )}
     </section>

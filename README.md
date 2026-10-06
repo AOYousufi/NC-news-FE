@@ -18,6 +18,7 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 - Paginated article feed
 - Public community directory
 - Public user profiles with each user's articles
+- Follow controls on public profiles
 - Read article discussions as a guest
 - Dynamic home page with popular stories
 
@@ -88,3 +89,9 @@ npm run build
 ```
 
 GitHub Actions runs both checks on pushes to `main` and pull requests.
+
+## Dashboard
+
+Authenticated users have a private `/dashboard` combining recent activity, saved articles, drafts and followed writers. The `/following` route is a personalised feed containing published articles from followed users.
+
+Drafts never appear in public article lists or public article URLs until the owner publishes them.

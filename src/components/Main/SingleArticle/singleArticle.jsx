@@ -5,6 +5,9 @@ import {
   deleteArticle,
   fetchArticle,
   fetchArticleVote,
+  fetchSavedArticles,
+  saveArticle,
+  unsaveArticle,
   updateVotes,
 } from "../../../api/api";
 import Error from "../../UI/error";
@@ -23,6 +26,8 @@ function SingleArticle() {
   const [userVote, setUserVote] = useState(0);
   const [isVoting, setIsVoting] = useState(false);
   const [isVoteLoading, setIsVoteLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,6 +37,7 @@ function SingleArticle() {
     setActionError("");
     setArticle(null);
     setUserVote(0);
+    setIsSaved(false);
     setShowDeleteConfirm(false);
 
     fetchArticle(article_id)
@@ -43,12 +49,36 @@ function SingleArticle() {
   }, [article_id]);
 
   useEffect(() => {
-    if (!article || !loggedUser || loggedUser.username === article.author) {
+    if (!article || !loggedUser) {
       setUserVote(0);
+      setIsSaved(false);
       return;
     }
 
     let active = true;
+
+    fetchSavedArticles()
+      .then((articles) => {
+        if (active) {
+          setIsSaved(
+            articles.some(
+              (savedArticle) =>
+                savedArticle.article_id === article.article_id
+            )
+          );
+        }
+      })
+      .catch(() => {
+        if (active) setIsSaved(false);
+      });
+
+    if (loggedUser.username === article.author) {
+      setUserVote(0);
+      return () => {
+        active = false;
+      };
+    }
+
     setIsVoteLoading(true);
 
     fetchArticleVote(article.article_id)
@@ -97,6 +127,28 @@ function SingleArticle() {
     }
   };
 
+  const toggleSaved = async () => {
+    if (!loggedUser || isSaveLoading) return;
+
+    const previous = isSaved;
+    setIsSaved(!previous);
+    setIsSaveLoading(true);
+    setActionError("");
+
+    try {
+      if (previous) {
+        await unsaveArticle(article.article_id);
+      } else {
+        await saveArticle(article.article_id);
+      }
+    } catch (err) {
+      setIsSaved(previous);
+      setActionError(err.message);
+    } finally {
+      setIsSaveLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     setActionError("");
     setIsDeleting(true);
@@ -130,23 +182,53 @@ function SingleArticle() {
           ← Back to articles
         </Link>
 
-        {ownsArticle && (
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to={"/articles/" + article.article_id + "/edit"}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
-            >
-              Edit article
-            </Link>
+        <div className="flex flex-wrap gap-2">
+          {loggedUser ? (
             <button
               type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="rounded-xl bg-rose-50 px-4 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-100"
+              onClick={toggleSaved}
+              disabled={isSaveLoading}
+              aria-pressed={isSaved}
+              className={
+                "rounded-xl border px-4 py-2 text-sm font-black transition disabled:opacity-60 " +
+                (isSaved
+                  ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-indigo-300")
+              }
             >
-              Delete
+              {isSaveLoading
+                ? "Saving..."
+                : isSaved
+                  ? "★ Saved"
+                  : "☆ Save"}
             </button>
-          </div>
-        )}
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-600"
+            >
+              ☆ Save
+            </Link>
+          )}
+
+          {ownsArticle && (
+            <>
+              <Link
+                to={"/articles/" + article.article_id + "/edit"}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
+              >
+                Edit article
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded-xl bg-rose-50 px-4 py-2 text-sm font-black text-rose-700 transition hover:bg-rose-100"
+              >
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {showDeleteConfirm && ownsArticle && (

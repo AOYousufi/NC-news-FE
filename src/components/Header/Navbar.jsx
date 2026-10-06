@@ -21,26 +21,36 @@ function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <NavLink
             to="/"
             className="mr-2 text-lg font-black tracking-tight text-slate-950"
           >
             NC<span className="text-indigo-600">News</span>
           </NavLink>
+
           <NavLink to="/articles" className={linkClass}>
             Articles
           </NavLink>
           <NavLink to="/users" className={linkClass}>
             Community
           </NavLink>
+
           {loggedUser && (
-            <NavLink
-              to="/articles/new"
-              className="hidden rounded-lg bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 sm:inline-flex"
-            >
-              + Write
-            </NavLink>
+            <>
+              <NavLink to="/following" className={linkClass}>
+                Following
+              </NavLink>
+              <NavLink to="/dashboard" className={linkClass}>
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/articles/new"
+                className="hidden rounded-lg bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 md:inline-flex"
+              >
+                + Write
+              </NavLink>
+            </>
           )}
         </div>
 
