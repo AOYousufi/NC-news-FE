@@ -25,12 +25,7 @@ function ArticleEditorForm({
 
   useEffect(() => {
     setForm({ ...EMPTY_ARTICLE, ...initialValues });
-  }, [
-    initialValues.title,
-    initialValues.topic,
-    initialValues.body,
-    initialValues.article_img_url,
-  ]);
+  }, [initialValues]);
 
   useEffect(() => {
     fetchTopics()
