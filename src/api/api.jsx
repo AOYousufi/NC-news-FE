@@ -214,6 +214,13 @@ const changePassword = (currentPassword, newPassword) =>
     })
     .then(() => true);
 
+const deleteAccount = (password, confirmation) =>
+  api
+    .delete("/users/me", {
+      data: { password, confirmation },
+    })
+    .then(() => true);
+
 const fetchNotifications = ({ unread = false } = {}) =>
   api
     .get("/users/me/notifications", { params: { unread } })
@@ -240,6 +247,7 @@ export {
   clearStoredToken,
   createArticle,
   createTopic,
+  deleteAccount,
   deleteArticle,
   deleteComment,
   editComment,

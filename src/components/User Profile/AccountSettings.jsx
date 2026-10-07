@@ -1,11 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/userContext";
-import { changePassword } from "../../api/api";
+import { changePassword, deleteAccount } from "../../api/api";
 import Loading from "../UI/Loading";
 
 function AccountSettings() {
-  const { loggedUser, isAuthLoading } = useContext(UserContext);
+  const { loggedUser, isAuthLoading, logout } = useContext(UserContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({
     currentPassword: "",
@@ -15,6 +15,10 @@ function AccountSettings() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && !loggedUser) {
@@ -62,6 +66,27 @@ function AccountSettings() {
       setError(err.message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async (event) => {
+    event.preventDefault();
+    setDeleteError("");
+
+    if (deleteConfirmation !== loggedUser.username) {
+      setDeleteError("Type your username exactly to confirm account deletion.");
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await deleteAccount(deletePassword, deleteConfirmation);
+      logout();
+      navigate("/", { replace: true });
+    } catch (err) {
+      setDeleteError(err.message);
+      setIsDeleting(false);
     }
   };
 
@@ -154,6 +179,76 @@ function AccountSettings() {
             className="w-fit rounded-xl bg-indigo-600 px-5 py-3 font-black text-white disabled:opacity-60"
           >
             {isSaving ? "Changing password..." : "Change password"}
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-8 overflow-hidden rounded-[2rem] border border-rose-200 bg-white shadow-sm">
+        <div className="border-b border-rose-100 bg-rose-50 px-6 py-6 sm:px-9">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-rose-600">
+            Danger zone
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-rose-950">
+            Delete account
+          </h2>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-rose-800">
+            This permanently removes your account and your owned content. This
+            action cannot be undone.
+          </p>
+        </div>
+
+        <form onSubmit={handleDeleteAccount} className="grid gap-5 p-6 sm:p-9">
+          <label>
+            <span className="text-sm font-black text-slate-800">
+              Current password
+            </span>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(event) => {
+                setDeletePassword(event.target.value);
+                setDeleteError("");
+              }}
+              autoComplete="current-password"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+            />
+          </label>
+
+          <label>
+            <span className="text-sm font-black text-slate-800">
+              Type <span className="text-rose-700">{loggedUser.username}</span>{" "}
+              to confirm
+            </span>
+            <input
+              value={deleteConfirmation}
+              onChange={(event) => {
+                setDeleteConfirmation(event.target.value);
+                setDeleteError("");
+              }}
+              autoComplete="off"
+              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+            />
+          </label>
+
+          {deleteError && (
+            <p
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+            >
+              {deleteError}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={
+              isDeleting ||
+              !deletePassword ||
+              deleteConfirmation !== loggedUser.username
+            }
+            className="w-fit rounded-xl bg-rose-700 px-5 py-3 font-black text-white transition hover:bg-rose-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isDeleting ? "Deleting account..." : "Permanently delete account"}
           </button>
         </form>
       </div>
