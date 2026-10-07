@@ -18,6 +18,7 @@ function Dashboard() {
   const [saved, setSaved] = useState([]);
   const [drafts, setDrafts] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [activityFilter, setActivityFilter] = useState("all");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -50,6 +51,10 @@ function Dashboard() {
   if (!loggedUser) return null;
 
   const stats = activity?.stats || {};
+
+  const filteredActivity = (activity?.activity || []).filter(
+    (item) => activityFilter === "all" || item.type === activityFilter
+  );
 
   const activityLabel = (item) => {
     if (item.type === "article") return "Published an article";
@@ -140,8 +145,34 @@ function Dashboard() {
             Recent activity
           </p>
           <h2 className="mt-1 text-2xl font-black text-slate-950">Timeline</h2>
+
+          <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter activity">
+            {[
+              ["all", "All"],
+              ["article", "Articles"],
+              ["comment", "Comments"],
+              ["saved", "Saved"],
+              ["follow", "Follows"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setActivityFilter(value)}
+                aria-pressed={activityFilter === value}
+                className={
+                  "rounded-full px-3 py-1.5 text-xs font-black transition " +
+                  (activityFilter === value
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="mt-4 space-y-3">
-            {(activity?.activity || []).slice(0, 10).map((item, index) => (
+            {filteredActivity.slice(0, 10).map((item, index) => (
               <div
                 key={item.type + "-" + item.resource_id + "-" + index}
                 className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -157,6 +188,12 @@ function Dashboard() {
                 </p>
               </div>
             ))}
+
+            {filteredActivity.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-7 text-center text-sm text-slate-500">
+                No activity in this category yet.
+              </div>
+            )}
           </div>
         </div>
       </div>
