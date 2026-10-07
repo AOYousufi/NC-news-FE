@@ -1,11 +1,40 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/userContext";
+import { fetchNotificationCount } from "../../api/api";
 import Avatar from "../UI/Avatar";
 
 function NavBar() {
   const { loggedUser, isAuthLoading, logout } = useContext(UserContext);
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!loggedUser) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let active = true;
+
+    const refreshCount = () => {
+      fetchNotificationCount()
+        .then((count) => {
+          if (active) setUnreadCount(count);
+        })
+        .catch(() => {
+          if (active) setUnreadCount(0);
+        });
+    };
+
+    refreshCount();
+    const interval = window.setInterval(refreshCount, 60000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [loggedUser]);
 
   const handleLogout = () => {
     logout();
@@ -58,6 +87,23 @@ function NavBar() {
           <div className="flex items-center gap-2">
             {loggedUser ? (
               <>
+                <NavLink
+                  to="/notifications"
+                  aria-label={
+                    unreadCount
+                      ? unreadCount + " unread notifications"
+                      : "Notifications"
+                  }
+                  className="relative rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+                >
+                  <span aria-hidden="true">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 min-w-5 rounded-full bg-indigo-600 px-1.5 py-0.5 text-center text-[10px] font-black leading-4 text-white">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </NavLink>
+
                 <NavLink
                   to="/userProfile"
                   className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"

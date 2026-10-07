@@ -173,6 +173,24 @@ const fetchCurrentUser = () =>
 const updateCurrentUser = (updates) =>
   api.patch("/users/me", updates).then((response) => response.data.user);
 
+const fetchNotifications = ({ unread = false } = {}) =>
+  api
+    .get("/users/me/notifications", { params: { unread } })
+    .then((response) => response.data);
+
+const fetchNotificationCount = () =>
+  api
+    .get("/users/me/notifications/count")
+    .then((response) => response.data.unread_count);
+
+const markNotificationRead = (notificationId) =>
+  api
+    .patch("/users/me/notifications/" + notificationId + "/read")
+    .then((response) => response.data.notification);
+
+const markAllNotificationsRead = () =>
+  api.patch("/users/me/notifications/read-all").then(() => true);
+
 export {
   AUTH_EXPIRED_EVENT,
   TOKEN_KEY,
@@ -193,6 +211,8 @@ export {
   fetchFollowing,
   fetchFollowingFeed,
   fetchManagedArticle,
+  fetchNotificationCount,
+  fetchNotifications,
   fetchSavedArticles,
   fetchTopics,
   fetchUser,
@@ -200,6 +220,8 @@ export {
   followUser,
   getStoredToken,
   loginUser,
+  markAllNotificationsRead,
+  markNotificationRead,
   registerUser,
   saveArticle,
   unfollowUser,
