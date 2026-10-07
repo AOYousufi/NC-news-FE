@@ -63,11 +63,14 @@ const fetchArticles = ({
   order = "desc",
   topic,
   author,
+  search,
   limit,
   p,
 } = {}) =>
   api
-    .get("/articles", { params: { sort_by, order, topic, author, limit, p } })
+    .get("/articles", {
+      params: { sort_by, order, topic, author, search, limit, p },
+    })
     .then((response) => response.data.articles);
 
 const fetchArticle = (articleId) =>

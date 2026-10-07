@@ -19,6 +19,8 @@ const Articles = () => {
   const sortCriteria = searchParams.get("sort_by") || "created_at";
   const sortOrder = searchParams.get("order") || "desc";
   const page = Math.max(Number(searchParams.get("p")) || 1, 1);
+  const search = searchParams.get("search") || "";
+  const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
     setIsLoading(true);
@@ -27,13 +29,18 @@ const Articles = () => {
     fetchArticles({
       sort_by: sortCriteria,
       order: sortOrder,
+      search: search || undefined,
       limit: PAGE_SIZE,
       p: page,
     })
       .then(setArticles)
       .catch(setError)
       .finally(() => setIsLoading(false));
-  }, [page, sortCriteria, sortOrder]);
+  }, [page, search, sortCriteria, sortOrder]);
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
 
   const updateSearch = (changes) => {
     const next = new URLSearchParams(searchParams);
@@ -52,6 +59,19 @@ const Articles = () => {
 
   const changeSort = (key, value) => {
     updateSearch({ [key]: value, p: 1 });
+  };
+
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const cleaned = searchInput.trim();
+
+    if (cleaned && cleaned.length < 2) {
+      setError({ status: 400, message: "Search needs at least 2 characters." });
+      return;
+    }
+
+    setError(null);
+    updateSearch({ search: cleaned || undefined, p: 1 });
   };
 
   if (error) return <Error error={error} />;
@@ -94,6 +114,47 @@ const Articles = () => {
       </div>
 
       <div className="mt-6 space-y-4">
+        <form
+          onSubmit={submitSearch}
+          role="search"
+          className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row"
+        >
+          <label className="min-w-0 flex-1">
+            <span className="sr-only">Search articles</span>
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search stories, article text or authors..."
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-black text-white transition hover:bg-indigo-700"
+          >
+            Search
+          </button>
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                updateSearch({ search: undefined, p: 1 });
+              }}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+            >
+              Clear
+            </button>
+          )}
+        </form>
+
+        {search && (
+          <p className="text-sm font-semibold text-slate-500">
+            Results for “{search}”
+          </p>
+        )}
+
         <Topics setError={setError} />
 
         <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -132,7 +193,9 @@ const Articles = () => {
         <Loading />
       ) : articles.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="font-bold text-slate-700">No articles on this page.</p>
+          <p className="font-bold text-slate-700">
+            {search ? "No stories match this search." : "No articles on this page."}
+          </p>
           {hasPrevious && (
             <button
               type="button"
