@@ -4,6 +4,7 @@ import { UserContext } from "../../../../Context/userContext";
 import {
   addComment,
   deleteComment,
+  editComment,
   fetchComments,
   fetchCommentVotes,
   updateCommentVote,
@@ -55,6 +56,8 @@ function CommentNode({
   onVoteChanged,
 }) {
   const [isReplying, setIsReplying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editBody, setEditBody] = useState(comment.body);
   const [reply, setReply] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
@@ -117,6 +120,31 @@ function CommentNode({
     }
   };
 
+  const submitEdit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    const cleaned = editBody.trim();
+    if (!cleaned || cleaned === comment.body) {
+      setIsEditing(false);
+      setEditBody(comment.body);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const updated = await editComment(comment.comment_id, cleaned);
+      await refresh();
+      setEditBody(updated.body);
+      setIsEditing(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const removeComment = async () => {
     setDeletingId(comment.comment_id);
     setError("");
@@ -166,21 +194,69 @@ function CommentNode({
             )}
 
             {ownsComment && (
-              <button
-                type="button"
-                onClick={removeComment}
-                disabled={deletingId === comment.comment_id}
-                className="rounded-lg px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
-              >
-                {deletingId === comment.comment_id ? "Deleting..." : "Delete"}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditBody(comment.body);
+                    setIsEditing((current) => !current);
+                  }}
+                  className="rounded-lg px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-100"
+                >
+                  {isEditing ? "Cancel edit" : "Edit"}
+                </button>
+                <button
+                  type="button"
+                  onClick={removeComment}
+                  disabled={deletingId === comment.comment_id}
+                  className="rounded-lg px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                >
+                  {deletingId === comment.comment_id ? "Deleting..." : "Delete"}
+                </button>
+              </>
             )}
           </div>
         </div>
 
-        <p className="mt-4 whitespace-pre-line break-words leading-7 text-slate-700">
-          {comment.body}
-        </p>
+        {isEditing ? (
+          <form onSubmit={submitEdit} className="mt-4">
+            <textarea
+              value={editBody}
+              onChange={(event) => setEditBody(event.target.value)}
+              rows={4}
+              className="w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2.5 leading-7 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+            <div className="mt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditBody(comment.body);
+                  setIsEditing(false);
+                }}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !editBody.trim()}
+                className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-50"
+              >
+                {isSubmitting ? "Saving..." : "Save edit"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <p className="mt-4 whitespace-pre-line break-words leading-7 text-slate-700">
+            {comment.body}
+          </p>
+        )}
+
+        {comment.updated_at &&
+          new Date(comment.updated_at).getTime() >
+            new Date(comment.created_at).getTime() + 1000 && (
+            <p className="mt-2 text-xs font-semibold text-slate-400">Edited</p>
+          )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
           {loggedUser ? (

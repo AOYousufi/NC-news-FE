@@ -171,6 +171,11 @@ const addComment = (articleId, comment) =>
 const deleteComment = (commentId) =>
   api.delete("/comments/" + commentId).then(() => true);
 
+const editComment = (commentId, body) =>
+  api
+    .patch("/comments/" + commentId, { body })
+    .then((response) => response.data.comment);
+
 const fetchCommentVotes = (articleId) =>
   api
     .get("/articles/" + articleId + "/comment-votes")
@@ -220,6 +225,7 @@ export {
   createTopic,
   deleteArticle,
   deleteComment,
+  editComment,
   fetchActivity,
   fetchArticle,
   fetchArticleVote,
