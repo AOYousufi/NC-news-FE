@@ -14,6 +14,7 @@ import Error from "../../UI/error";
 import Loading from "../../UI/Loading";
 import PostComment from "./addNewComment";
 import ArticleComments from "./articlesComments";
+import ReportButton from "../../UI/ReportButton";
 
 function SingleArticle() {
   const { article_id } = useParams();
@@ -214,6 +215,13 @@ function SingleArticle() {
             >
               ☆ Save
             </Link>
+          )}
+
+          {loggedUser && !ownsArticle && (
+            <ReportButton
+              targetType="article"
+              targetId={article.article_id}
+            />
           )}
 
           {ownsArticle && (

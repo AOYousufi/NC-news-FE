@@ -239,6 +239,19 @@ const markNotificationRead = (notificationId) =>
 const markAllNotificationsRead = () =>
   api.patch("/users/me/notifications/read-all").then(() => true);
 
+const createReport = (report) =>
+  api.post("/reports", report).then((response) => response.data.report);
+
+const fetchModerationReports = (status = "open") =>
+  api
+    .get("/moderation/reports", { params: { status } })
+    .then((response) => response.data.reports);
+
+const reviewModerationReport = (reportId, status) =>
+  api
+    .patch("/moderation/reports/" + reportId, { status })
+    .then((response) => response.data.report);
+
 export {
   AUTH_EXPIRED_EVENT,
   TOKEN_KEY,
@@ -247,6 +260,7 @@ export {
   clearStoredToken,
   createArticle,
   createTopic,
+  createReport,
   deleteAccount,
   deleteArticle,
   deleteComment,
@@ -265,6 +279,7 @@ export {
   fetchFollowing,
   fetchFollowingFeed,
   fetchManagedArticle,
+  fetchModerationReports,
   fetchNotificationCount,
   fetchNotifications,
   fetchSavedArticles,
@@ -279,6 +294,7 @@ export {
   markAllNotificationsRead,
   markNotificationRead,
   registerUser,
+  reviewModerationReport,
   saveArticle,
   unfollowUser,
   unsaveArticle,

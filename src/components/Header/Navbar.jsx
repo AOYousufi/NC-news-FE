@@ -73,6 +73,11 @@ function NavBar() {
               <NavLink to="/dashboard" className={linkClass}>
                 Dashboard
               </NavLink>
+              {loggedUser.role === "moderator" && (
+                <NavLink to="/moderation" className={linkClass}>
+                  Moderate
+                </NavLink>
+              )}
               <NavLink
                 to="/articles/new"
                 className="hidden rounded-lg bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 md:inline-flex"

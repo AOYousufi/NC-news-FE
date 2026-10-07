@@ -10,6 +10,7 @@ import {
   updateCommentVote,
 } from "../../../api/api";
 import Loading from "../../UI/Loading";
+import ReportButton from "../../UI/ReportButton";
 
 function buildCommentTree(comments) {
   const nodes = new Map(
@@ -191,6 +192,14 @@ function CommentNode({
               >
                 {isReplying ? "Cancel" : "Reply"}
               </button>
+            )}
+
+            {loggedUser && !ownsComment && (
+              <ReportButton
+                targetType="comment"
+                targetId={comment.comment_id}
+                compact
+              />
             )}
 
             {ownsComment && (

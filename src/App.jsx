@@ -5,6 +5,7 @@ import Footer from "./components/Header/footer";
 import Home from "./components/Home";
 import Dashboard from "./components/Dashboard/Dashboard";
 import Notifications from "./components/Dashboard/Notifications";
+import ModerationQueue from "./components/Moderation/ModerationQueue";
 import Articles from "./components/Main/Articles/Articles";
 import CreateArticle from "./components/Main/Articles/CreateArticle";
 import EditArticle from "./components/Main/Articles/EditArticle";
@@ -31,6 +32,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/notifications" element={<Notifications />} />
+              <Route path="/moderation" element={<ModerationQueue />} />
               <Route path="/following" element={<FollowingFeed />} />
               <Route path="/articles" element={<Articles />} />
               <Route path="/articles/new" element={<CreateArticle />} />
