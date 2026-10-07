@@ -5,6 +5,7 @@ import {
   fetchArticles,
   fetchFollowStatus,
   fetchUser,
+  fetchUserComments,
   fetchUserStats,
   followUser,
   unfollowUser,
@@ -19,6 +20,8 @@ function PublicUserProfile() {
   const { loggedUser } = useContext(UserContext);
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [activeTab, setActiveTab] = useState("articles");
   const [isFollowing, setIsFollowing] = useState(false);
   const [stats, setStats] = useState(null);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
@@ -30,6 +33,7 @@ function PublicUserProfile() {
   useEffect(() => {
     setIsLoading(true);
     setError(null);
+    setActiveTab("articles");
 
     Promise.all([
       fetchUser(username),
@@ -39,11 +43,13 @@ function PublicUserProfile() {
         order: "desc",
       }),
       fetchUserStats(username),
+      fetchUserComments(username),
     ])
-      .then(([userData, articleData, statsData]) => {
+      .then(([userData, articleData, statsData, commentData]) => {
         setUser(userData);
         setArticles(articleData);
         setStats(statsData);
+        setComments(commentData);
       })
       .catch(setError)
       .finally(() => setIsLoading(false));
@@ -94,6 +100,12 @@ function PublicUserProfile() {
   if (error) return <Error error={error} />;
   if (isLoading || !user) return <Loading />;
 
+  const tabs = [
+    ["articles", "Articles", stats?.articles ?? articles.length],
+    ["comments", "Comments", stats?.comments ?? comments.length],
+    ["about", "About", null],
+  ];
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -112,8 +124,8 @@ function PublicUserProfile() {
               </div>
             </div>
 
-            {!isSelf && (
-              loggedUser ? (
+            {!isSelf &&
+              (loggedUser ? (
                 <button
                   type="button"
                   onClick={toggleFollow}
@@ -139,15 +151,14 @@ function PublicUserProfile() {
                 >
                   Sign in to follow
                 </Link>
-              )
-            )}
+              ))}
           </div>
         </div>
 
         <div className="grid gap-3 border-b border-slate-100 px-6 py-5 sm:grid-cols-3 lg:grid-cols-6 sm:px-10">
           {[
             ["Articles", stats?.articles ?? articles.length],
-            ["Comments", stats?.comments ?? 0],
+            ["Comments", stats?.comments ?? comments.length],
             ["Followers", stats?.followers ?? 0],
             ["Following", stats?.following ?? 0],
             ["Article votes", stats?.article_votes_received ?? 0],
@@ -162,10 +173,28 @@ function PublicUserProfile() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
-          <p className="text-sm text-slate-500">
-            Public contribution overview
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 sm:px-10">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Profile sections">
+            {tabs.map(([value, label, count]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === value}
+                onClick={() => setActiveTab(value)}
+                className={
+                  "rounded-xl px-4 py-2 text-sm font-black transition " +
+                  (activeTab === value
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+                }
+              >
+                {label}
+                {count !== null ? " · " + count : ""}
+              </button>
+            ))}
+          </div>
+
           <Link
             to="/users"
             className="text-sm font-bold text-indigo-600 hover:text-indigo-700"
@@ -175,32 +204,78 @@ function PublicUserProfile() {
         </div>
       </div>
 
-      <div className="mt-8">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
-            Published stories
-          </p>
-          <h2 className="mt-2 text-3xl font-black text-slate-950">
+      {activeTab === "articles" && (
+        <div className="mt-8">
+          <h2 className="text-3xl font-black text-slate-950">
             Articles by {user.name}
           </h2>
-        </div>
 
-        {articles.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-            This user has not published any articles yet.
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-5">
-            {articles.map((article) => (
-              <ArticleCard
-                key={article.article_id}
-                {...article}
-                img_url={article.article_img_url}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          {articles.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+              This user has not published any articles yet.
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-5">
+              {articles.map((article) => (
+                <ArticleCard
+                  key={article.article_id}
+                  {...article}
+                  img_url={article.article_img_url}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "comments" && (
+        <div className="mt-8">
+          <h2 className="text-3xl font-black text-slate-950">
+            Comments by {user.name}
+          </h2>
+
+          {comments.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+              No public comments yet.
+            </div>
+          ) : (
+            <div className="mt-6 space-y-3">
+              {comments.map((comment) => (
+                <Link
+                  key={comment.comment_id}
+                  to={"/articles/" + comment.article_id}
+                  className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md"
+                >
+                  <p className="text-xs font-black uppercase tracking-wide text-indigo-600">
+                    On {comment.article_title}
+                  </p>
+                  <p className="mt-3 leading-7 text-slate-700">{comment.body}</p>
+                  <div className="mt-3 flex gap-3 text-xs font-bold text-slate-400">
+                    <span>{comment.votes} votes</span>
+                    <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "about" && (
+        <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-indigo-600">
+            About this member
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-slate-950">{user.name}</h2>
+          <p className="mt-3 leading-7 text-slate-600">
+            @{user.username} has published {stats?.articles ?? articles.length}{" "}
+            {(stats?.articles ?? articles.length) === 1 ? "article" : "articles"} and
+            contributed {stats?.comments ?? comments.length}{" "}
+            {(stats?.comments ?? comments.length) === 1 ? "comment" : "comments"} to
+            the NC News community.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

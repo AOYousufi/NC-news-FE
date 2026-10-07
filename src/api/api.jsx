@@ -123,6 +123,11 @@ const fetchUserStats = (username) =>
     .get("/users/" + username + "/stats")
     .then((response) => response.data.stats);
 
+const fetchUserComments = (username) =>
+  api
+    .get("/users/" + username + "/comments")
+    .then((response) => response.data.comments);
+
 const fetchActivity = () =>
   api.get("/users/me/activity").then((response) => response.data);
 
@@ -232,6 +237,7 @@ export {
   fetchSavedArticles,
   fetchTopics,
   fetchUser,
+  fetchUserComments,
   fetchUserStats,
   fetchUsers,
   followUser,
