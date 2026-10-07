@@ -5,6 +5,8 @@ import {
   addComment,
   deleteComment,
   fetchComments,
+  fetchCommentVotes,
+  updateCommentVote,
 } from "../../../api/api";
 import Loading from "../../UI/Loading";
 
@@ -49,12 +51,18 @@ function CommentNode({
   deletingId,
   setDeletingId,
   setError,
+  voteStates,
+  onVoteChanged,
 }) {
   const [isReplying, setIsReplying] = useState(false);
   const [reply, setReply] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
 
   const ownsComment = loggedUser?.username === comment.author;
+  const voteState = voteStates?.[comment.comment_id];
+  const currentVote = voteState?.vote || 0;
+  const canVote = voteState?.can_vote !== false && !ownsComment;
   const date = new Date(comment.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
@@ -81,6 +89,31 @@ function CommentNode({
       setError(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const vote = async (choice) => {
+    if (!loggedUser || !canVote || isVoting) return;
+
+    const previousVote = currentVote;
+    const previousVotes = comment.votes;
+    const nextVote = previousVote === choice ? 0 : choice;
+    const delta = nextVote - previousVote;
+
+    setIsVoting(true);
+    setError("");
+    onVoteChanged(comment.comment_id, nextVote, previousVotes + delta);
+
+    try {
+      const updated = await updateCommentVote(comment.comment_id, {
+        inc_votes: choice,
+      });
+      onVoteChanged(comment.comment_id, updated.user_vote, updated.votes);
+    } catch (err) {
+      onVoteChanged(comment.comment_id, previousVote, previousVotes);
+      setError(err.message);
+    } finally {
+      setIsVoting(false);
     }
   };
 
@@ -149,6 +182,51 @@ function CommentNode({
           {comment.body}
         </p>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+          {loggedUser ? (
+            canVote ? (
+              <>
+                <button
+                  type="button"
+                  aria-pressed={currentVote === 1}
+                  onClick={() => vote(1)}
+                  disabled={isVoting}
+                  className={
+                    "rounded-lg px-3 py-1.5 text-xs font-black transition disabled:opacity-50 " +
+                    (currentVote === 1
+                      ? "bg-emerald-600 text-white"
+                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100")
+                  }
+                >
+                  {currentVote === 1 ? "✓ Agree" : "Agree"}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={currentVote === -1}
+                  onClick={() => vote(-1)}
+                  disabled={isVoting}
+                  className={
+                    "rounded-lg px-3 py-1.5 text-xs font-black transition disabled:opacity-50 " +
+                    (currentVote === -1
+                      ? "bg-rose-600 text-white"
+                      : "bg-rose-50 text-rose-700 hover:bg-rose-100")
+                  }
+                >
+                  {currentVote === -1 ? "✓ Disagree" : "Disagree"}
+                </button>
+              </>
+            ) : (
+              <span className="text-xs font-bold text-slate-400">
+                Your comment
+              </span>
+            )
+          ) : (
+            <Link to="/login" className="text-xs font-black text-indigo-600">
+              Sign in to vote
+            </Link>
+          )}
+        </div>
+
         {isReplying && (
           <form
             onSubmit={submitReply}
@@ -192,6 +270,8 @@ function CommentNode({
               deletingId={deletingId}
               setDeletingId={setDeletingId}
               setError={setError}
+              voteStates={voteStates}
+              onVoteChanged={onVoteChanged}
             />
           ))}
         </div>
@@ -205,12 +285,48 @@ function ArticleComments({ article_id, comments, setComments }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [voteStates, setVoteStates] = useState({});
+
+  const onVoteChanged = useCallback(
+    (commentId, vote, nextVotes) => {
+      setVoteStates((current) => ({
+        ...current,
+        [commentId]: {
+          ...(current[commentId] || {}),
+          vote,
+        },
+      }));
+      setComments((current) =>
+        current.map((comment) =>
+          comment.comment_id === commentId
+            ? { ...comment, votes: nextVotes }
+            : comment
+        )
+      );
+    },
+    [setComments]
+  );
 
   const refresh = useCallback(async () => {
     const nextComments = await fetchComments(article_id);
     setComments(nextComments);
     return nextComments;
   }, [article_id, setComments]);
+
+  useEffect(() => {
+    if (!loggedUser) {
+      setVoteStates({});
+      return;
+    }
+
+    fetchCommentVotes(article_id)
+      .then((votes) => {
+        setVoteStates(
+          Object.fromEntries(votes.map((item) => [item.comment_id, item]))
+        );
+      })
+      .catch(() => setVoteStates({}));
+  }, [article_id, loggedUser]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -267,6 +383,8 @@ function ArticleComments({ article_id, comments, setComments }) {
               deletingId={deletingId}
               setDeletingId={setDeletingId}
               setError={setError}
+              voteStates={voteStates}
+              onVoteChanged={onVoteChanged}
             />
           ))}
         </div>

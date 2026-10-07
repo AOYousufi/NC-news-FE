@@ -161,6 +161,16 @@ const addComment = (articleId, comment) =>
 const deleteComment = (commentId) =>
   api.delete("/comments/" + commentId).then(() => true);
 
+const fetchCommentVotes = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/comment-votes")
+    .then((response) => response.data.votes);
+
+const updateCommentVote = (commentId, voteInfo) =>
+  api
+    .patch("/comments/" + commentId + "/vote", voteInfo)
+    .then((response) => response.data.comment);
+
 const loginUser = (credentials) =>
   api.post("/users/login", credentials).then((response) => response.data);
 
@@ -205,6 +215,7 @@ export {
   fetchArticleVote,
   fetchArticles,
   fetchComments,
+  fetchCommentVotes,
   fetchCurrentUser,
   fetchDrafts,
   fetchFollowStatus,
@@ -227,6 +238,7 @@ export {
   unfollowUser,
   unsaveArticle,
   updateArticleContent,
+  updateCommentVote,
   updateCurrentUser,
   updateVotes,
 };
