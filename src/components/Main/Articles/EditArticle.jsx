@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
 import {
+  fetchArticleRevisions,
   fetchManagedArticle,
   updateArticleContent,
 } from "../../../api/api";
@@ -16,6 +17,7 @@ function EditArticle() {
   const [article, setArticle] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [saveError, setSaveError] = useState("");
+  const [revisions, setRevisions] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -27,8 +29,14 @@ function EditArticle() {
   useEffect(() => {
     if (!loggedUser) return;
 
-    fetchManagedArticle(article_id)
-      .then(setArticle)
+    Promise.all([
+      fetchManagedArticle(article_id),
+      fetchArticleRevisions(article_id),
+    ])
+      .then(([articleData, revisionData]) => {
+        setArticle(articleData);
+        setRevisions(revisionData);
+      })
       .catch(setLoadError);
   }, [article_id, loggedUser]);
 
@@ -88,7 +96,8 @@ function EditArticle() {
   };
 
   return (
-    <ArticleEditorForm
+    <>
+      <ArticleEditorForm
       initialValues={initialValues}
       initialStatus={article.status || "published"}
       heading={article.status === "draft" ? "Continue your draft" : "Edit your story"}
@@ -97,6 +106,53 @@ function EditArticle() {
       isSubmitting={isSubmitting}
       serverError={saveError}
     />
+
+      <section className="mx-auto max-w-5xl px-4 pb-12 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-indigo-600">
+                History
+              </p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                Previous versions
+              </h2>
+            </div>
+            <span className="text-sm font-bold text-slate-400">
+              {revisions.length} {revisions.length === 1 ? "revision" : "revisions"}
+            </span>
+          </div>
+
+          {revisions.length ? (
+            <div className="mt-5 space-y-3">
+              {revisions.map((revision, index) => (
+                <details
+                  key={revision.revision_id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <summary className="cursor-pointer font-black text-slate-900">
+                    Version {revisions.length - index} ·{" "}
+                    {new Date(revision.created_at).toLocaleString()}
+                  </summary>
+                  <div className="mt-4 grid gap-3 text-sm text-slate-600">
+                    <p><strong>Title:</strong> {revision.title}</p>
+                    <p><strong>Topic:</strong> {revision.topic}</p>
+                    <p><strong>Status:</strong> {revision.status}</p>
+                    <p className="whitespace-pre-line leading-6">
+                      <strong>Body:</strong> {revision.body}
+                    </p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-slate-500">
+              No previous versions yet. The first edit will create one.
+            </p>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
 

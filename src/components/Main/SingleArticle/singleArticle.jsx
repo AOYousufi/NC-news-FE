@@ -166,6 +166,11 @@ function SingleArticle() {
   if (error) return <Error error={error} />;
   if (!article) return <Loading />;
 
+  const edited =
+    article.updated_at &&
+    new Date(article.updated_at).getTime() >
+      new Date(article.created_at).getTime() + 1000;
+
   const date = new Date(article.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "long",
@@ -287,6 +292,14 @@ function SingleArticle() {
               {article.topic}
             </Link>
             <span>{date}</span>
+            {edited && (
+              <span
+                title={"Last edited " + new Date(article.updated_at).toLocaleString()}
+                className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black uppercase tracking-wide text-slate-500"
+              >
+                Edited
+              </span>
+            )}
             <span>
               By{" "}
               <Link

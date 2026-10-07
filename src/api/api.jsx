@@ -81,6 +81,11 @@ const fetchManagedArticle = (articleId) =>
     .get("/articles/" + articleId + "/manage")
     .then((response) => response.data.article);
 
+const fetchArticleRevisions = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/revisions")
+    .then((response) => response.data.revisions);
+
 const createArticle = (article) =>
   api.post("/articles", article).then((response) => response.data.article);
 
@@ -229,6 +234,7 @@ export {
   fetchActivity,
   fetchArticle,
   fetchArticleVote,
+  fetchArticleRevisions,
   fetchArticles,
   fetchComments,
   fetchCommentVotes,
