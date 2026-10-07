@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
-import { fetchArticles } from "../../../api/api";
+import { fetchArticlesPage } from "../../../api/api";
 import Error from "../../UI/error";
 import Loading from "../../UI/Loading";
 import ArticleCard from "./ArticleCard";
@@ -13,6 +13,7 @@ const Articles = () => {
   const { loggedUser } = useContext(UserContext);
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -26,14 +27,17 @@ const Articles = () => {
     setIsLoading(true);
     setError(null);
 
-    fetchArticles({
+    fetchArticlesPage({
       sort_by: sortCriteria,
       order: sortOrder,
       search: search || undefined,
       limit: PAGE_SIZE,
       p: page,
     })
-      .then(setArticles)
+      .then((data) => {
+        setArticles(data.articles);
+        setPagination(data.pagination);
+      })
       .catch(setError)
       .finally(() => setIsLoading(false));
   }, [page, search, sortCriteria, sortOrder]);
@@ -76,8 +80,8 @@ const Articles = () => {
 
   if (error) return <Error error={error} />;
 
-  const hasPrevious = page > 1;
-  const hasNext = articles.length === PAGE_SIZE;
+  const hasPrevious = pagination?.has_previous ?? page > 1;
+  const hasNext = pagination?.has_next ?? false;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -185,7 +189,12 @@ const Articles = () => {
             </label>
           </div>
 
-          <p className="text-sm font-semibold text-slate-400">Page {page}</p>
+          <p className="text-sm font-semibold text-slate-400">
+            Page {page}
+            {pagination?.total_pages
+              ? " of " + pagination.total_pages + " · " + pagination.total_count + " stories"
+              : ""}
+          </p>
         </div>
       </div>
 

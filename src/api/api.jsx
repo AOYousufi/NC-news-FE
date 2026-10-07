@@ -73,6 +73,9 @@ const fetchArticles = ({
     })
     .then((response) => response.data.articles);
 
+const fetchArticlesPage = (options = {}) =>
+  api.get("/articles", { params: options }).then((response) => response.data);
+
 const fetchArticle = (articleId) =>
   api.get("/articles/" + articleId).then((response) => response.data.article[0]);
 
@@ -236,6 +239,7 @@ export {
   fetchArticleVote,
   fetchArticleRevisions,
   fetchArticles,
+  fetchArticlesPage,
   fetchComments,
   fetchCommentVotes,
   fetchCurrentUser,

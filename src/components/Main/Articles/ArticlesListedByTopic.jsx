@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { fetchArticles } from "../../../api/api";
+import { fetchArticlesPage } from "../../../api/api";
 import Error from "../../UI/error";
 import Loading from "../../UI/Loading";
 import ArticleCard from "./ArticleCard";
@@ -12,6 +12,7 @@ function ListArticlesByTopic() {
   const { topic } = useParams();
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -23,14 +24,17 @@ function ListArticlesByTopic() {
     setIsLoading(true);
     setError(null);
 
-    fetchArticles({
+    fetchArticlesPage({
       sort_by: sortCriteria,
       order: sortOrder,
       topic,
       limit: PAGE_SIZE,
       p: page,
     })
-      .then(setArticles)
+      .then((data) => {
+        setArticles(data.articles);
+        setPagination(data.pagination);
+      })
       .catch(setError)
       .finally(() => setIsLoading(false));
   }, [page, sortCriteria, sortOrder, topic]);
@@ -53,8 +57,8 @@ function ListArticlesByTopic() {
   if (error) return <Error error={error} />;
 
   const title = topic.charAt(0).toUpperCase() + topic.slice(1);
-  const hasPrevious = page > 1;
-  const hasNext = articles.length === PAGE_SIZE;
+  const hasPrevious = pagination?.has_previous ?? page > 1;
+  const hasNext = pagination?.has_next ?? false;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
