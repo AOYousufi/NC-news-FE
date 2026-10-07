@@ -80,14 +80,23 @@ function UserProfile() {
         </div>
 
         <form className="grid gap-6 p-6 sm:p-10" onSubmit={handleSubmit}>
-          <div>
-            <h2 className="text-2xl font-black text-slate-950">
-              Personalise your profile
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Your username stays fixed, but you can change your display name
-              and profile picture whenever you like.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">
+                Personalise your profile
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Your username stays fixed, but you can change your display name
+                and profile picture whenever you like.
+              </p>
+            </div>
+
+            <Link
+              to="/settings"
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
+            >
+              Security settings
+            </Link>
           </div>
 
           <label>

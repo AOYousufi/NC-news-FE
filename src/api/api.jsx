@@ -206,6 +206,14 @@ const fetchCurrentUser = () =>
 const updateCurrentUser = (updates) =>
   api.patch("/users/me", updates).then((response) => response.data.user);
 
+const changePassword = (currentPassword, newPassword) =>
+  api
+    .patch("/users/me/password", {
+      current_password: currentPassword,
+      new_password: newPassword,
+    })
+    .then(() => true);
+
 const fetchNotifications = ({ unread = false } = {}) =>
   api
     .get("/users/me/notifications", { params: { unread } })
@@ -228,6 +236,7 @@ export {
   AUTH_EXPIRED_EVENT,
   TOKEN_KEY,
   addComment,
+  changePassword,
   clearStoredToken,
   createArticle,
   createTopic,

@@ -16,6 +16,7 @@ import SignUp from "./components/Main/Users/signup";
 import Users from "./components/Main/Users/Users";
 import PublicUserProfile from "./components/Main/Users/PublicUserProfile";
 import UserProfile from "./components/User Profile/UserProfile";
+import AccountSettings from "./components/User Profile/AccountSettings";
 import NotFound from "./components/UI/NotFound";
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/userProfile" element={<UserProfile />} />
+              <Route path="/settings" element={<AccountSettings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
