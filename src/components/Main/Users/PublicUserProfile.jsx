@@ -5,6 +5,7 @@ import {
   fetchArticles,
   fetchFollowStatus,
   fetchUser,
+  fetchUserStats,
   followUser,
   unfollowUser,
 } from "../../../api/api";
@@ -19,6 +20,7 @@ function PublicUserProfile() {
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [stats, setStats] = useState(null);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,10 +38,12 @@ function PublicUserProfile() {
         sort_by: "created_at",
         order: "desc",
       }),
+      fetchUserStats(username),
     ])
-      .then(([userData, articleData]) => {
+      .then(([userData, articleData, statsData]) => {
         setUser(userData);
         setArticles(articleData);
+        setStats(statsData);
       })
       .catch(setError)
       .finally(() => setIsLoading(false));
@@ -140,9 +144,27 @@ function PublicUserProfile() {
           </div>
         </div>
 
+        <div className="grid gap-3 border-b border-slate-100 px-6 py-5 sm:grid-cols-3 lg:grid-cols-6 sm:px-10">
+          {[
+            ["Articles", stats?.articles ?? articles.length],
+            ["Comments", stats?.comments ?? 0],
+            ["Followers", stats?.followers ?? 0],
+            ["Following", stats?.following ?? 0],
+            ["Article votes", stats?.article_votes_received ?? 0],
+            ["Comment votes", stats?.comment_votes_received ?? 0],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-xl bg-slate-50 p-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                {label}
+              </p>
+              <p className="mt-1 text-xl font-black text-slate-950">{value}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 sm:px-10">
           <p className="text-sm text-slate-500">
-            {articles.length} {articles.length === 1 ? "article" : "articles"} published
+            Public contribution overview
           </p>
           <Link
             to="/users"

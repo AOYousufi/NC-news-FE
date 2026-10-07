@@ -118,6 +118,11 @@ const fetchUsers = () =>
 const fetchUser = (username) =>
   api.get("/users/" + username).then((response) => response.data);
 
+const fetchUserStats = (username) =>
+  api
+    .get("/users/" + username + "/stats")
+    .then((response) => response.data.stats);
+
 const fetchActivity = () =>
   api.get("/users/me/activity").then((response) => response.data);
 
@@ -227,6 +232,7 @@ export {
   fetchSavedArticles,
   fetchTopics,
   fetchUser,
+  fetchUserStats,
   fetchUsers,
   followUser,
   getStoredToken,
