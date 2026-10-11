@@ -151,6 +151,11 @@ function Notifications() {
                     {notification.article_title}
                   </p>
                 )}
+                {notification.target_removed && (
+                  <p className="mt-1 text-xs font-semibold text-slate-600">
+                    Original content was removed. This opens the member profile instead.
+                  </p>
+                )}
                 <p className="mt-2 text-xs text-slate-600">
                   {new Date(notification.created_at).toLocaleString()}
                 </p>

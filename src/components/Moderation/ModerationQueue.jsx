@@ -354,7 +354,10 @@ function AuditPanel({ audit }) {
                       {item.action.replaceAll("_", " ")}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      @{item.moderator_username} · {item.target_type}
+                      {item.moderator_username
+                        ? "@" + item.moderator_username
+                        : "Deleted moderator"}{" "}
+                      · {item.target_type}
                       {item.target_id ? " #" + item.target_id : ""}
                     </p>
                   </div>
