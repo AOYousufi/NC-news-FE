@@ -1,6 +1,8 @@
 # NC News - Frontend
 
-A polished React frontend for the NC News REST API. Guests can browse the full public news experience, while authenticated users can vote, comment and manage their profile.
+A production-style React frontend for the NC News community publishing platform.
+
+The app supports public browsing plus authenticated publishing, social discovery, saved reading lists, reactions, notifications, moderation and account management.
 
 ## Live links
 
@@ -8,48 +10,93 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 - **API:** https://nc-news-vvdv.onrender.com/api
 - **Backend repo:** https://github.com/AOYousufi/NC-News-BE
 
-## Features
+## Product features
 
-### Public experience
+### Discovery
 
-- Browse articles without an account
-- Topic navigation and URL-based sorting
-- Authenticated topic creation directly from the article editor
-- Paginated article feed
-- Public community directory
-- Public user profiles with each user's articles
-- Follow controls on public profiles
-- Read article discussions as a guest
-- Dynamic home page with popular stories
+- Home page with Hot stories and trending topics
+- article search
+- topic, author and date-range filtering
+- sorting + pagination
+- dedicated Trending page
+- "More like this" recommendations
+- public user directory
+- public profile contribution stats
 
-### User management
+### Personalisation
 
-- Register with username/password
-- Log in with the backend authentication API
-- Choice between browser-session sign-in and persistent device sign-in
-- Automatic current-user restoration
-- Expired/invalid session cleanup
-- Update profile name and avatar
-- View your public profile
+- follow writers
+- follow topics
+- personalised Following feed
+- bookmarks/Saved articles
+- private named Collections
+- Dashboard with activity, drafts, Saved and following state
 
-### Authenticated actions
+### Publishing
 
-- Create and publish articles as the authenticated user
-- Edit only your own article content
-- Delete only your own articles with an explicit confirmation step
-- Vote on other users' articles with persistent Agree/Disagree state and instant switching
-- Post comments as the authenticated user
-- Delete only your own comments
+- create articles
+- private drafts
+- edit/publish/unpublish flow
+- local browser autosave recovery
+- article preview before publishing
+- revision history
+- owner-only edit/delete controls
+- featured/pinned profile story
+- profile bio
 
-### Quality
+### Voting and reactions
 
-- Responsive layout
-- Reusable accessible create/edit article editor
-- Owner-only article management controls
-- Loading, empty and error states
-- Netlify SPA routing support
-- Environment-based API URL
-- GitHub Actions lint and production-build checks
+- persistent Agree/Disagree state
+- instant switching/removal without refresh
+- self-voting blocked
+- **Insightful**, **Useful** and **Funny** reactions
+- one active reaction per user/article
+- persistent comment voting
+
+### Discussion
+
+- comments
+- nested replies
+- collapsible reply trees
+- comment editing
+- comment deletion with tombstone rendering
+- @mention guidance and mention notifications
+
+### Reading experience
+
+- estimated reading time
+- reading progress bar
+- recommendations
+- article collections
+
+### Notifications
+
+- unread count
+- follow notifications
+- comment/reply notifications
+- article vote notifications
+- @mention notifications
+- mark one/all as read
+
+### Moderation
+
+- report article/comment controls
+- moderator-only section
+- report queue
+- resolve/dismiss workflow
+- platform analytics
+- moderation audit history
+
+### Account management
+
+- register/login
+- persistent or browser-session login choice
+- current-user restoration
+- expired-session cleanup
+- avatar/profile editing
+- bio + featured story
+- password change
+- account deletion
 
 ## Tech stack
 
@@ -58,10 +105,44 @@ A polished React frontend for the NC News REST API. Guests can browse the full p
 | UI | React 18 |
 | Routing | React Router |
 | HTTP | Axios |
-| Styling | Tailwind CSS + DaisyUI |
+| Styling | Tailwind CSS |
 | Build | Vite |
+| Browser testing | Playwright |
+| Accessibility | axe-core + Playwright |
 | Hosting | Netlify |
-| API | Node.js / Express / PostgreSQL on Render |
+| API | Node.js / Express / PostgreSQL |
+
+## Quality gates
+
+Every push to `main` is checked by GitHub Actions.
+
+### Frontend checks
+
+```bash
+npm ci
+npm run lint
+npm run build
+npm run budget
+```
+
+The performance budget fails CI if the compressed frontend bundle grows beyond the configured thresholds.
+
+### Browser E2E
+
+Playwright covers important flows including:
+
+- session restoration
+- search URL state
+- draft creation
+- bookmark/vote switching
+- article reactions
+- follows
+- report/moderation flow
+- mobile navigation and overflow
+
+### Accessibility
+
+axe-core checks key public pages against WCAG A/AA rules and fails CI on serious/critical violations.
 
 ## Local setup
 
@@ -79,19 +160,22 @@ npm run dev
 VITE_API_URL=https://nc-news-vvdv.onrender.com/api
 ```
 
-`VITE_API_URL` is public frontend configuration, not a secret. Authentication tokens are issued by the backend after login or registration.
+`VITE_API_URL` is public client configuration, not a secret.
 
-## Checks
+## Useful commands
 
 ```bash
+npm run dev
 npm run lint
 npm run build
+npm run budget
+npm run preview
 ```
 
-GitHub Actions runs both checks on pushes to `main` and pull requests.
+## Architecture notes
 
-## Dashboard
+Authentication tokens are stored in either `sessionStorage` or `localStorage` depending on the user's sign-in choice.
 
-Authenticated users have a private `/dashboard` combining recent activity, saved articles, drafts and followed writers. The `/following` route is a personalised feed containing published articles from followed users.
+Frontend ownership checks are only presentation logic. The backend remains authoritative for permissions, ownership, draft privacy, moderator access, voting and account mutations.
 
-Drafts never appear in public article lists or public article URLs until the owner publishes them.
+The app does not depend on an external search, recommendation or notification service. Search, trending, recommendations, follows, collections and notifications are backed by the NC News API/PostgreSQL.
