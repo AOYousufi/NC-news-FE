@@ -1,8 +1,5 @@
 import { useId, useState } from "react";
-import {
-  AVATAR_PLAYGROUND_URL,
-  generateRandomAvatarUrl,
-} from "../../utils/avatar";
+import { generateRandomAvatarUrl } from "../../utils/avatar";
 import Avatar from "./Avatar";
 
 function AvatarPicker({
@@ -63,8 +60,8 @@ function AvatarPicker({
             Pick something that feels like you
           </p>
           <p id={helpId} className="mt-1 text-sm leading-6 text-slate-600">
-            Generate one instantly, paste a direct image URL, or make your own
-            in DiceBear.
+            Generate one locally in your browser, paste a direct image URL, or
+            use your initials fallback. No avatar service is required.
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -76,15 +73,6 @@ function AvatarPicker({
             >
               ✨ Surprise me
             </button>
-
-            <a
-              href={AVATAR_PLAYGROUND_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
-            >
-              Make your own ↗
-            </a>
 
             {value && (
               <button

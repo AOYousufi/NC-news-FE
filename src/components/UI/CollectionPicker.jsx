@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   addArticleToCollection,
@@ -74,7 +75,7 @@ function CollectionPicker({ articleId }) {
                     <span className="block truncate font-black text-slate-900">
                       {collection.name}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-600">
                       {collection.article_count} articles
                     </span>
                   </span>
@@ -83,12 +84,12 @@ function CollectionPicker({ articleId }) {
               ))}
             </div>
           ) : (
-            <a
-              href="/collections"
+            <Link
+              to="/collections"
               className="mt-4 block rounded-xl bg-slate-900 px-4 py-2.5 text-center text-sm font-black text-white"
             >
               Create a collection
-            </a>
+            </Link>
           )}
 
           {message && (
