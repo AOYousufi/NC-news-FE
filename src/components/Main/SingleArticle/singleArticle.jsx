@@ -1,9 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
 import {
   deleteArticle,
   fetchArticle,
+  fetchArticleRecommendations,
   fetchArticleVote,
   fetchSavedArticles,
   saveArticle,
@@ -31,6 +32,9 @@ function SingleArticle() {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [comments, setComments] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const articleRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -40,15 +44,44 @@ function SingleArticle() {
     setArticle(null);
     setUserVote(0);
     setIsSaved(false);
+    setRecommendations([]);
+    setReadingProgress(0);
     setShowDeleteConfirm(false);
 
-    fetchArticle(article_id)
-      .then((data) => {
+    Promise.all([
+      fetchArticle(article_id),
+      fetchArticleRecommendations(article_id, { limit: 4 }).catch(() => []),
+    ])
+      .then(([data, recommended]) => {
         setArticle(data);
         setVotes(data.votes);
+        setRecommendations(recommended);
       })
       .catch(setError);
   }, [article_id]);
+
+  useEffect(() => {
+    if (!article) return;
+
+    const updateProgress = () => {
+      const element = articleRef.current;
+      if (!element) return;
+
+      const rect = element.getBoundingClientRect();
+      const articleHeight = Math.max(element.offsetHeight - window.innerHeight, 1);
+      const scrolled = Math.min(Math.max(-rect.top + 96, 0), articleHeight);
+      setReadingProgress(Math.min((scrolled / articleHeight) * 100, 100));
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [article]);
 
   useEffect(() => {
     if (!article || !loggedUser) {
@@ -173,6 +206,11 @@ function SingleArticle() {
     new Date(article.updated_at).getTime() >
       new Date(article.created_at).getTime() + 1000;
 
+  const readingMinutes = Math.max(
+    1,
+    Math.ceil(article.body.trim().split(/\s+/).filter(Boolean).length / 220)
+  );
+
   const date = new Date(article.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "long",
@@ -180,7 +218,13 @@ function SingleArticle() {
   });
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+    <>
+      <div
+        aria-hidden="true"
+        className="fixed left-0 top-0 z-[70] h-1 bg-indigo-600 transition-[width] duration-150"
+        style={{ width: readingProgress + "%" }}
+      />
+      <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/articles"
@@ -263,8 +307,9 @@ function SingleArticle() {
             id="delete-article-description"
             className="mt-2 text-sm leading-6 text-rose-800"
           >
-            The story and all comments underneath it will be removed. This
-            cannot be undone.
+            The story will be removed from public NC News. Its discussion
+            history is retained safely, but the article will no longer be
+            available to readers.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
@@ -287,7 +332,10 @@ function SingleArticle() {
         </div>
       )}
 
-      <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <article
+        ref={articleRef}
+        className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+      >
         {article.article_img_url && (
           <img
             src={article.article_img_url}
@@ -305,6 +353,7 @@ function SingleArticle() {
               {article.topic}
             </Link>
             <span>{date}</span>
+            <span>{readingMinutes} min read</span>
             {edited && (
               <span
                 title={"Last edited " + new Date(article.updated_at).toLocaleString()}
@@ -421,7 +470,50 @@ function SingleArticle() {
           setComments={setComments}
         />
       </div>
-    </section>
+
+      {recommendations.length > 0 && (
+        <section className="mt-12 border-t border-slate-200 pt-8">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-indigo-600">
+                Keep reading
+              </p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                More like this
+              </h2>
+            </div>
+            <Link
+              to={"/articles/topics/" + article.topic}
+              className="text-sm font-black text-indigo-600 hover:text-indigo-700"
+            >
+              More {article.topic} →
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {recommendations.map((recommended) => (
+              <Link
+                key={recommended.article_id}
+                to={"/articles/" + recommended.article_id}
+                className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-indigo-600">
+                  {recommended.topic}
+                </p>
+                <h3 className="mt-2 line-clamp-2 text-lg font-black text-slate-950 group-hover:text-indigo-700">
+                  {recommended.title}
+                </h3>
+                <p className="mt-3 text-sm text-slate-500">
+                  @{recommended.author} · {recommended.votes} votes ·{" "}
+                  {recommended.comment_count} comments
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      </section>
+    </>
   );
 }
 
