@@ -156,7 +156,7 @@ function Home() {
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
               >
                 <span className="font-black text-slate-950">{topic.slug}</span>
-                <span className="ml-3 text-xs font-semibold text-slate-400">
+                <span className="ml-3 text-xs font-semibold text-slate-600">
                   {topic.article_count} stories · {topic.comment_count} comments
                 </span>
               </Link>

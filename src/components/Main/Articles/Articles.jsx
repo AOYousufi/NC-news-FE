@@ -242,7 +242,7 @@ const Articles = () => {
             </label>
           </div>
 
-          <p className="text-sm font-semibold text-slate-400">
+          <p className="text-sm font-semibold text-slate-600">
             Page {page}
             {pagination?.total_pages
               ? " of " + pagination.total_pages + " · " + pagination.total_count + " stories"

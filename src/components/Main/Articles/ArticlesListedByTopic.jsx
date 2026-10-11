@@ -187,7 +187,7 @@ function ListArticlesByTopic() {
             </label>
           </div>
 
-          <p className="text-sm font-semibold text-slate-400">Page {page}</p>
+          <p className="text-sm font-semibold text-slate-600">Page {page}</p>
         </div>
       </div>
 
