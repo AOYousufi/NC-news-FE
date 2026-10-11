@@ -44,7 +44,7 @@ function Footer() {
           </a>
         </nav>
 
-        <p className="border-t border-slate-100 pt-6 text-xs text-slate-400 md:col-span-3">
+        <p className="border-t border-slate-100 pt-6 text-xs text-slate-600 md:col-span-3">
           © {new Date().getFullYear()} Ahmad Ozair Yousufi
         </p>
       </div>
