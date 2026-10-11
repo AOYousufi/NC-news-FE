@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/userContext";
+import { fetchArticles } from "../../api/api";
 import Avatar from "../UI/Avatar";
 import AvatarPicker from "../UI/AvatarPicker";
 
@@ -9,6 +10,9 @@ function UserProfile() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [bio, setBio] = useState("");
+  const [pinnedArticleId, setPinnedArticleId] = useState("");
+  const [ownArticles, setOwnArticles] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -20,10 +24,24 @@ function UserProfile() {
   }, [isAuthLoading, loggedUser, navigate]);
 
   useEffect(() => {
-    if (loggedUser) {
-      setName(loggedUser.name || "");
-      setAvatarUrl(loggedUser.avatar_url || "");
-    }
+    if (!loggedUser) return;
+
+    setName(loggedUser.name || "");
+    setAvatarUrl(loggedUser.avatar_url || "");
+    setBio(loggedUser.bio || "");
+    setPinnedArticleId(
+      loggedUser.pinned_article_id
+        ? String(loggedUser.pinned_article_id)
+        : ""
+    );
+
+    fetchArticles({
+      author: loggedUser.username,
+      sort_by: "created_at",
+      order: "desc",
+    })
+      .then(setOwnArticles)
+      .catch(() => setOwnArticles([]));
   }, [loggedUser]);
 
   if (isAuthLoading || !loggedUser) return null;
@@ -38,12 +56,21 @@ function UserProfile() {
       return;
     }
 
+    if (bio.length > 500) {
+      setError("Bio must be 500 characters or fewer.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       await updateProfile({
         name: name.trim(),
         avatar_url: avatarUrl.trim(),
+        bio: bio.trim(),
+        pinned_article_id: pinnedArticleId
+          ? Number(pinnedArticleId)
+          : null,
       });
       setMessage("Profile updated successfully.");
     } catch (err) {
@@ -69,6 +96,11 @@ function UserProfile() {
               </p>
               <h1 className="mt-2 text-4xl font-black">{name || loggedUser.name}</h1>
               <p className="mt-1 text-slate-300">@{loggedUser.username}</p>
+              {bio && (
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                  {bio}
+                </p>
+              )}
               <Link
                 to={"/users/" + loggedUser.username}
                 className="mt-4 inline-block rounded-lg text-sm font-bold text-indigo-200 underline decoration-white/20 underline-offset-4 hover:text-white"
@@ -86,8 +118,8 @@ function UserProfile() {
                 Personalise your profile
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Your username stays fixed, but you can change your display name
-                and profile picture whenever you like.
+                Your username stays fixed. Your bio and featured story help
+                visitors understand what you write about.
               </p>
             </div>
 
@@ -111,6 +143,46 @@ function UserProfile() {
               autoComplete="name"
               className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
+          </label>
+
+          <label>
+            <span className="flex items-center justify-between text-sm font-bold text-slate-800">
+              Bio
+              <span className="font-medium text-slate-400">{bio.length}/500</span>
+            </span>
+            <textarea
+              value={bio}
+              onChange={(event) => {
+                setBio(event.target.value);
+                setError("");
+                setMessage("");
+              }}
+              rows={4}
+              maxLength={500}
+              placeholder="What do you write about?"
+              className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 leading-7 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+
+          <label>
+            <span className="text-sm font-bold text-slate-800">
+              Featured story
+            </span>
+            <select
+              value={pinnedArticleId}
+              onChange={(event) => setPinnedArticleId(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            >
+              <option value="">No featured story</option>
+              {ownArticles.map((article) => (
+                <option key={article.article_id} value={article.article_id}>
+                  {article.title}
+                </option>
+              ))}
+            </select>
+            <span className="mt-2 block text-xs leading-5 text-slate-500">
+              Only your own published stories can be pinned.
+            </span>
           </label>
 
           <AvatarPicker

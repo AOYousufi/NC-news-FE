@@ -121,6 +121,11 @@ function PublicUserProfile() {
                   {user.name}
                 </h1>
                 <p className="mt-1 text-slate-300">@{user.username}</p>
+                {user.bio && (
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                    {user.bio}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -204,6 +209,37 @@ function PublicUserProfile() {
         </div>
       </div>
 
+      {user.pinned_article_id && user.pinned_article_title && (
+        <Link
+          to={"/articles/" + user.pinned_article_id}
+          className="mt-8 block overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm transition hover:border-amber-300 hover:shadow-md"
+        >
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">
+            Featured story
+          </p>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+            {user.pinned_article_img_url && (
+              <img
+                src={user.pinned_article_img_url}
+                alt=""
+                className="h-28 w-full rounded-2xl object-cover sm:w-44"
+              />
+            )}
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">
+                {user.pinned_article_title}
+              </h2>
+              <p className="mt-1 text-sm font-bold text-indigo-600">
+                {user.pinned_article_topic}
+              </p>
+              <p className="mt-3 text-sm font-black text-slate-700">
+                Read featured story →
+              </p>
+            </div>
+          </div>
+        </Link>
+      )}
+
       {activeTab === "articles" && (
         <div className="mt-8">
           <h2 className="text-3xl font-black text-slate-950">
@@ -267,13 +303,19 @@ function PublicUserProfile() {
             About this member
           </p>
           <h2 className="mt-2 text-2xl font-black text-slate-950">{user.name}</h2>
-          <p className="mt-3 leading-7 text-slate-600">
-            @{user.username} has published {stats?.articles ?? articles.length}{" "}
-            {(stats?.articles ?? articles.length) === 1 ? "article" : "articles"} and
-            contributed {stats?.comments ?? comments.length}{" "}
-            {(stats?.comments ?? comments.length) === 1 ? "comment" : "comments"} to
-            the NC News community.
-          </p>
+          {user.bio ? (
+            <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
+              {user.bio}
+            </p>
+          ) : (
+            <p className="mt-3 leading-7 text-slate-600">
+              @{user.username} has published {stats?.articles ?? articles.length}{" "}
+              {(stats?.articles ?? articles.length) === 1 ? "article" : "articles"} and
+              contributed {stats?.comments ?? comments.length}{" "}
+              {(stats?.comments ?? comments.length) === 1 ? "comment" : "comments"} to
+              the NC News community.
+            </p>
+          )}
         </div>
       )}
     </section>
