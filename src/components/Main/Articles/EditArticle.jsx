@@ -84,6 +84,9 @@ function EditArticle() {
 
     try {
       const updated = await updateArticleContent(article.article_id, updates);
+      localStorage.removeItem(
+        "nc-news-editor:article:" + article.article_id
+      );
       navigate(
         updated.status === "draft"
           ? "/dashboard"
@@ -100,6 +103,7 @@ function EditArticle() {
       <ArticleEditorForm
       initialValues={initialValues}
       initialStatus={article.status || "published"}
+      autosaveKey={"article:" + article.article_id}
       heading={article.status === "draft" ? "Continue your draft" : "Edit your story"}
       description="Update the story privately or publish it when you are happy with the result."
       onSubmit={handleUpdate}

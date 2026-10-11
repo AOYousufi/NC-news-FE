@@ -25,6 +25,7 @@ function CreateArticle() {
 
     try {
       const created = await createArticle(article);
+      localStorage.removeItem("nc-news-editor:new:" + loggedUser.username);
       navigate(
         created.status === "draft"
           ? "/dashboard"
@@ -39,6 +40,7 @@ function CreateArticle() {
   return (
     <ArticleEditorForm
       initialStatus="draft"
+      autosaveKey={"new:" + loggedUser.username}
       heading="Write a new story"
       description="Start privately as a draft or publish when it is ready. Your signed-in account is always the author."
       onSubmit={handleCreate}

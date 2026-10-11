@@ -16,6 +16,7 @@ function ArticleEditorForm({
   description,
   isSubmitting,
   serverError,
+  autosaveKey = "new",
 }) {
   const [form, setForm] = useState({ ...EMPTY_ARTICLE, ...initialValues });
   const [topics, setTopics] = useState([]);
@@ -25,11 +26,68 @@ function ArticleEditorForm({
   const [topicDraft, setTopicDraft] = useState({ slug: "", description: "" });
   const [topicCreateError, setTopicCreateError] = useState("");
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [autosaveMessage, setAutosaveMessage] = useState("");
+  const [autosaveReady, setAutosaveReady] = useState(false);
   const formHelpId = useId();
+  const storageKey = "nc-news-editor:" + autosaveKey;
 
   useEffect(() => {
-    setForm({ ...EMPTY_ARTICLE, ...initialValues });
-  }, [initialValues]);
+    const base = { ...EMPTY_ARTICLE, ...initialValues };
+
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.form) {
+          setForm({ ...base, ...parsed.form });
+          setAutosaveMessage("Recovered local autosave.");
+        } else {
+          setForm(base);
+        }
+      } else {
+        setForm(base);
+      }
+    } catch {
+      setForm(base);
+    }
+
+    setAutosaveReady(true);
+  }, [initialValues, storageKey]);
+
+  useEffect(() => {
+    if (!autosaveReady) return;
+
+    const hasContent =
+      form.title.trim() ||
+      form.topic.trim() ||
+      form.body.trim() ||
+      form.article_img_url.trim();
+
+    if (!hasContent) {
+      localStorage.removeItem(storageKey);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          form,
+          savedAt: new Date().toISOString(),
+        })
+      );
+      setAutosaveMessage(
+        "Autosaved locally at " +
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+      );
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [autosaveReady, form, storageKey]);
 
   useEffect(() => {
     fetchTopics()
@@ -265,6 +323,57 @@ function ArticleEditorForm({
             )}
           </div>
 
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 px-4 py-3">
+            <div>
+              <p className="text-sm font-black text-indigo-950">
+                Writing safety net
+              </p>
+              <p className="mt-1 text-xs text-indigo-700">
+                {autosaveMessage || "Your browser will keep a local recovery copy while you type."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPreviewing((current) => !current)}
+              className="rounded-xl bg-white px-4 py-2 text-sm font-black text-indigo-700 shadow-sm transition hover:bg-indigo-50"
+            >
+              {isPreviewing ? "Back to editor" : "Preview article"}
+            </button>
+          </div>
+
+          {isPreviewing ? (
+            <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              {form.article_img_url && (
+                <img
+                  src={form.article_img_url}
+                  alt=""
+                  className="max-h-[380px] w-full object-cover"
+                />
+              )}
+              <div className="p-6 sm:p-9">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500">
+                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                    {form.topic || "topic"}
+                  </span>
+                  <span>
+                    {Math.max(
+                      1,
+                      Math.ceil(
+                        form.body.trim().split(/\s+/).filter(Boolean).length / 220
+                      )
+                    )}{" "}
+                    min read
+                  </span>
+                </div>
+                <h2 className="mt-5 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
+                  {form.title || "Your article title"}
+                </h2>
+                <p className="mt-7 whitespace-pre-line text-lg leading-8 text-slate-700">
+                  {form.body || "Your article preview will appear here as you write."}
+                </p>
+              </div>
+            </article>
+          ) : (
           <label className="block">
             <span className="text-sm font-black text-slate-800">
               Article body
@@ -278,6 +387,7 @@ function ArticleEditorForm({
               className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3.5 leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
+          )}
 
           <div className="grid gap-5 lg:grid-cols-[1fr_260px] lg:items-end">
             <label className="block">
