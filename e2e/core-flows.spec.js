@@ -308,6 +308,17 @@ async function setAuthenticatedSession(page) {
   });
 }
 
+test("generates profile avatars locally without a third-party request", async ({ page }) => {
+  await page.goto("/signup");
+
+  await page.getByLabel("Username").fill("local_avatar_user");
+  await page.getByLabel("Display name").fill("Local Avatar");
+  await page.getByRole("button", { name: "✨ Surprise me" }).click();
+
+  const avatarInput = page.getByLabel("Or paste an image URL");
+  await expect(avatarInput).toHaveValue(/^data:image\/svg\+xml/);
+});
+
 test("restores an authenticated session after refresh", async ({ page }) => {
   await setAuthenticatedSession(page);
   await mockApi(page);
