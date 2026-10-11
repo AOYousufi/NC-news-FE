@@ -175,7 +175,7 @@ function CommentNode({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             {isDeleted ? (
-              <span className="font-black text-slate-400">Deleted comment</span>
+              <span className="font-black text-slate-600">Deleted comment</span>
             ) : (
               <Link
                 to={"/users/" + comment.author}
@@ -184,7 +184,7 @@ function CommentNode({
                 @{comment.author}
               </Link>
             )}
-            <p className="mt-1 text-xs font-medium text-slate-400">
+            <p className="mt-1 text-xs font-medium text-slate-600">
               {date}
               {comment.votes !== undefined ? " · " + comment.votes + " votes" : ""}
             </p>

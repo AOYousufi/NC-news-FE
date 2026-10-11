@@ -170,7 +170,7 @@ function PublicUserProfile() {
             ["Comment votes", stats?.comment_votes_received ?? 0],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
                 {label}
               </p>
               <p className="mt-1 text-xl font-black text-slate-950">{value}</p>
@@ -286,7 +286,7 @@ function PublicUserProfile() {
                     On {comment.article_title}
                   </p>
                   <p className="mt-3 leading-7 text-slate-700">{comment.body}</p>
-                  <div className="mt-3 flex gap-3 text-xs font-bold text-slate-400">
+                  <div className="mt-3 flex gap-3 text-xs font-bold text-slate-600">
                     <span>{comment.votes} votes</span>
                     <span>{new Date(comment.created_at).toLocaleDateString()}</span>
                   </div>

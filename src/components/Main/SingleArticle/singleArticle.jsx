@@ -456,7 +456,7 @@ function SingleArticle() {
                 Sign in to vote
               </Link>
             ) : ownsArticle ? (
-              <p className="text-sm font-bold text-slate-400">
+              <p className="text-sm font-bold text-slate-600">
                 You cannot vote on your own article
               </p>
             ) : (
@@ -549,7 +549,7 @@ function SingleArticle() {
                     <span aria-hidden="true">{icon}</span> {label}{" "}
                     <span
                       className={
-                        active ? "text-indigo-100" : "text-slate-400"
+                        active ? "text-indigo-100" : "text-slate-600"
                       }
                     >
                       {reactionCounts[value] || 0}

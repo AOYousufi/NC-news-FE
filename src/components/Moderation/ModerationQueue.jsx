@@ -200,7 +200,7 @@ function ReportsPanel({ reports, status, setStatus, updatingId, review }) {
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black uppercase tracking-wide text-slate-600">
                       {report.target_type}
                     </span>
-                    <span className="text-xs font-semibold text-slate-400">
+                    <span className="text-xs font-semibold text-slate-600">
                       #{report.report_id}
                     </span>
                   </div>
@@ -221,7 +221,7 @@ function ReportsPanel({ reports, status, setStatus, updatingId, review }) {
                     </p>
                   )}
 
-                  <p className="mt-3 text-xs font-semibold text-slate-400">
+                  <p className="mt-3 text-xs font-semibold text-slate-600">
                     Reported by @{report.reporter_username} ·{" "}
                     {new Date(report.created_at).toLocaleString()}
                   </p>
@@ -292,7 +292,7 @@ function AnalyticsPanel({ analytics }) {
             key={key}
             className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-600">
               {countLabels[key] || key}
             </p>
             <p className="mt-2 text-3xl font-black text-slate-950">{value}</p>
@@ -326,7 +326,7 @@ function AnalyticsPanel({ analytics }) {
               >
                 <span>
                   <span className="block font-black text-slate-900">{user.name}</span>
-                  <span className="text-xs text-slate-400">@{user.username}</span>
+                  <span className="text-xs text-slate-600">@{user.username}</span>
                 </span>
                 <span className="text-sm font-black text-indigo-600">
                   {user.contribution_score}
@@ -358,7 +358,7 @@ function AuditPanel({ audit }) {
                       {item.target_id ? " #" + item.target_id : ""}
                     </p>
                   </div>
-                  <time className="text-xs font-semibold text-slate-400">
+                  <time className="text-xs font-semibold text-slate-600">
                     {new Date(item.created_at).toLocaleString()}
                   </time>
                 </div>

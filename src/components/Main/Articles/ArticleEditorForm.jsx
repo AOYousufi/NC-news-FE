@@ -218,7 +218,7 @@ function ArticleEditorForm({
           <label className="block">
             <span className="flex items-center justify-between gap-3 text-sm font-black text-slate-800">
               Article title
-              <span className="font-medium text-slate-400">
+              <span className="font-medium text-slate-600">
                 {form.title.length}/300
               </span>
             </span>
@@ -228,7 +228,7 @@ function ArticleEditorForm({
               onChange={updateField}
               maxLength={300}
               placeholder="Give readers a reason to open the story"
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-lg font-bold text-slate-950 outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-lg font-bold text-slate-950 outline-none transition placeholder:font-normal placeholder:text-slate-500 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
 
@@ -384,7 +384,7 @@ function ArticleEditorForm({
               onChange={updateField}
               rows={12}
               placeholder="Write the story here..."
-              className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3.5 leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3.5 leading-7 text-slate-900 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
           </label>
           )}
@@ -393,7 +393,7 @@ function ArticleEditorForm({
             <label className="block">
               <span className="text-sm font-black text-slate-800">
                 Cover image URL{" "}
-                <span className="font-medium text-slate-400">(optional)</span>
+                <span className="font-medium text-slate-600">(optional)</span>
               </span>
               <input
                 name="article_img_url"

@@ -59,7 +59,7 @@ function TrendingFeed() {
                 className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-black text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700"
               >
                 {topic.slug}
-                <span className="ml-2 text-xs font-semibold text-slate-400">
+                <span className="ml-2 text-xs font-semibold text-slate-600">
                   {topic.article_count} stories · {topic.comment_count} comments
                 </span>
               </Link>

@@ -151,7 +151,7 @@ function Notifications() {
                     {notification.article_title}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-slate-600">
                   {new Date(notification.created_at).toLocaleString()}
                 </p>
               </div>

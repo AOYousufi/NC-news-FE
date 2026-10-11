@@ -120,7 +120,7 @@ function Dashboard() {
                 Your reading list
               </h2>
             </div>
-            <span className="text-sm font-bold text-slate-400">{saved.length}</span>
+            <span className="text-sm font-bold text-slate-600">{saved.length}</span>
           </div>
 
           <div className="mt-4 space-y-4">
@@ -183,7 +183,7 @@ function Dashboard() {
                 <p className="mt-1 break-words font-bold text-slate-900">
                   {item.label}
                 </p>
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-slate-600">
                   {new Date(item.occurred_at).toLocaleString()}
                 </p>
               </div>

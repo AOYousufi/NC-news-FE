@@ -148,7 +148,7 @@ function UserProfile() {
           <label>
             <span className="flex items-center justify-between text-sm font-bold text-slate-800">
               Bio
-              <span className="font-medium text-slate-400">{bio.length}/500</span>
+              <span className="font-medium text-slate-600">{bio.length}/500</span>
             </span>
             <textarea
               value={bio}

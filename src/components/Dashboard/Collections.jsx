@@ -182,7 +182,7 @@ function Collections() {
         </label>
 
         <label className="text-sm font-bold text-slate-700">
-          Description <span className="font-medium text-slate-400">(optional)</span>
+          Description <span className="font-medium text-slate-600">(optional)</span>
           <input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
@@ -238,7 +238,7 @@ function Collections() {
                       className="w-full text-left"
                     >
                       <p className="font-black text-slate-950">{collection.name}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-400">
+                      <p className="mt-1 text-xs font-semibold text-slate-600">
                         {collection.article_count} articles
                       </p>
                     </button>

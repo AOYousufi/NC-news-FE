@@ -122,7 +122,7 @@ function EditArticle() {
                 Previous versions
               </h2>
             </div>
-            <span className="text-sm font-bold text-slate-400">
+            <span className="text-sm font-bold text-slate-600">
               {revisions.length} {revisions.length === 1 ? "revision" : "revisions"}
             </span>
           </div>

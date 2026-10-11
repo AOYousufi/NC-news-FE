@@ -98,7 +98,7 @@ function ReportButton({ targetType, targetId, compact = false }) {
 
           <label className="mt-3 block">
             <span className="text-xs font-black uppercase tracking-wide text-slate-600">
-              Details <span className="font-medium text-slate-400">(optional)</span>
+              Details <span className="font-medium text-slate-600">(optional)</span>
             </span>
             <textarea
               value={details}
