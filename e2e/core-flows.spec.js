@@ -342,11 +342,16 @@ test("submits a report and moderator can resolve it", async ({ page }) => {
   await expect(page.getByText("No open reports.")).toBeVisible();
 });
 
-test("mobile article list has no horizontal page overflow", async ({ page }) => {
+test("mobile navigation is usable without horizontal page overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockApi(page);
 
   await page.goto("/articles");
+
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  await expect(page.getByRole("link", { name: "Community" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign up" })).toBeVisible();
 
   const sizes = await page.evaluate(() => ({
     body: document.body.scrollWidth,
