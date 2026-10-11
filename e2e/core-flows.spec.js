@@ -349,9 +349,20 @@ test("mobile navigation is usable without horizontal page overflow", async ({ pa
   await page.goto("/articles");
 
   await page.getByRole("button", { name: "Open navigation menu" }).click();
-  await expect(page.getByRole("link", { name: "Community" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign up" })).toBeVisible();
+
+  const primaryNavigation = page.getByRole("navigation", {
+    name: "Primary navigation",
+  });
+
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Community", exact: true })
+  ).toBeVisible();
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Log in", exact: true })
+  ).toBeVisible();
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Sign up", exact: true })
+  ).toBeVisible();
 
   const sizes = await page.evaluate(() => ({
     body: document.body.scrollWidth,
