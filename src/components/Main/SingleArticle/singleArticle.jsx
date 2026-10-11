@@ -15,6 +15,7 @@ import Loading from "../../UI/Loading";
 import PostComment from "./addNewComment";
 import ArticleComments from "./articlesComments";
 import ReportButton from "../../UI/ReportButton";
+import CollectionPicker from "../../UI/CollectionPicker";
 
 function SingleArticle() {
   const { article_id } = useParams();
@@ -215,6 +216,10 @@ function SingleArticle() {
             >
               ☆ Save
             </Link>
+          )}
+
+          {loggedUser && (
+            <CollectionPicker articleId={article.article_id} />
           )}
 
           {loggedUser && !ownsArticle && (

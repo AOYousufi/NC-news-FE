@@ -94,6 +94,9 @@ function NavBar() {
                   <NavLink to="/dashboard" className={linkClass}>
                     Dashboard
                   </NavLink>
+                  <NavLink to="/collections" className={linkClass}>
+                    Collections
+                  </NavLink>
                   {loggedUser.role === "moderator" && (
                     <NavLink to="/moderation" className={linkClass}>
                       Moderate
@@ -198,6 +201,9 @@ function NavBar() {
                   </NavLink>
                   <NavLink to="/dashboard" className={mobileLinkClass}>
                     Dashboard
+                  </NavLink>
+                  <NavLink to="/collections" className={mobileLinkClass}>
+                    Collections
                   </NavLink>
                   <NavLink to="/articles/new" className={mobileLinkClass}>
                     Write article

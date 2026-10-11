@@ -5,6 +5,7 @@ import Footer from "./components/Header/footer";
 import Home from "./components/Home";
 import Dashboard from "./components/Dashboard/Dashboard";
 import Notifications from "./components/Dashboard/Notifications";
+import Collections from "./components/Dashboard/Collections";
 import ModerationQueue from "./components/Moderation/ModerationQueue";
 import Articles from "./components/Main/Articles/Articles";
 import CreateArticle from "./components/Main/Articles/CreateArticle";
@@ -33,6 +34,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/notifications" element={<Notifications />} />
+              <Route path="/collections" element={<Collections />} />
               <Route path="/moderation" element={<ModerationQueue />} />
               <Route path="/following" element={<FollowingFeed />} />
               <Route path="/trending" element={<TrendingFeed />} />
