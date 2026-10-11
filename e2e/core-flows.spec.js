@@ -42,6 +42,12 @@ async function mockApi(page, { currentUser = member } = {}) {
     createdArticle: null,
     reportCreated: false,
     reportStatus: "open",
+    reaction: null,
+    reactionCounts: {
+      insightful: 0,
+      useful: 0,
+      funny: 0,
+    },
   };
 
   await page.route("**/api/**", async (route) => {
@@ -111,6 +117,40 @@ async function mockApi(page, { currentUser = member } = {}) {
 
     if (path === "/articles/42/vote" && method === "GET") {
       return json(200, { vote: state.vote, can_vote: true });
+    }
+
+    if (path === "/articles/42/reactions" && method === "GET") {
+      return json(200, { reactions: state.reactionCounts });
+    }
+
+    if (path === "/articles/42/reaction" && method === "GET") {
+      return json(200, { reaction: state.reaction, can_react: true });
+    }
+
+    if (path === "/articles/42/reaction" && method === "PATCH") {
+      const next = request.postDataJSON().reaction;
+
+      if (state.reaction === next) {
+        state.reactionCounts[next] = Math.max(
+          state.reactionCounts[next] - 1,
+          0
+        );
+        state.reaction = null;
+      } else {
+        if (state.reaction) {
+          state.reactionCounts[state.reaction] = Math.max(
+            state.reactionCounts[state.reaction] - 1,
+            0
+          );
+        }
+        state.reaction = next;
+        state.reactionCounts[next] += 1;
+      }
+
+      return json(200, {
+        reaction: state.reaction,
+        counts: state.reactionCounts,
+      });
     }
 
     if (path === "/articles/42" && method === "PATCH") {
@@ -311,6 +351,31 @@ test("saves and switches article votes without refreshing", async ({ page }) => 
   await page.getByRole("button", { name: "Disagree", exact: true }).click();
   await expect(page.getByRole("button", { name: "✓ Disagreed", exact: true })).toBeVisible();
   expect(state.vote).toBe(-1);
+});
+
+test("switches article reactions without refreshing", async ({ page }) => {
+  await setAuthenticatedSession(page);
+  const state = await mockApi(page);
+
+  await page.goto("/articles/42");
+
+  await page.getByRole("button", { name: /Insightful 0/ }).click();
+  await expect(
+    page.getByRole("button", { name: /Insightful 1/ })
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(state.reaction).toBe("insightful");
+
+  await page.getByRole("button", { name: /Useful 0/ }).click();
+  await expect(
+    page.getByRole("button", { name: /Useful 1/ })
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(state.reaction).toBe("useful");
+  expect(state.reactionCounts.insightful).toBe(0);
+  expect(state.reactionCounts.useful).toBe(1);
+
+  await page.getByRole("button", { name: /Useful 1/ }).click();
+  expect(state.reaction).toBeNull();
+  expect(state.reactionCounts.useful).toBe(0);
 });
 
 test("follows a writer from their public profile", async ({ page }) => {
