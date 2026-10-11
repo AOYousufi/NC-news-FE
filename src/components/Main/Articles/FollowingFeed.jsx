@@ -40,7 +40,7 @@ function FollowingFeed() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="border-b border-slate-200 pb-7">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-600">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-700">
           Personalised
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">

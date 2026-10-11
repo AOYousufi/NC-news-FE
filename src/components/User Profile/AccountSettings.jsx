@@ -185,7 +185,7 @@ function AccountSettings() {
 
       <div className="mt-8 overflow-hidden rounded-[2rem] border border-rose-200 bg-white shadow-sm">
         <div className="border-b border-rose-100 bg-rose-50 px-6 py-6 sm:px-9">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-rose-600">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-rose-700">
             Danger zone
           </p>
           <h2 className="mt-2 text-2xl font-black text-rose-950">

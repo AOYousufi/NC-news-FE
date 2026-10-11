@@ -258,7 +258,7 @@ function Collections() {
                     <button
                       type="button"
                       onClick={() => removeCollection(collection.collection_id)}
-                      className="text-rose-600 hover:text-rose-700"
+                      className="text-rose-700 hover:text-rose-800"
                     >
                       Delete
                     </button>
@@ -303,7 +303,7 @@ function Collections() {
                       <button
                         type="button"
                         onClick={() => removeArticle(article.article_id)}
-                        className="mt-2 text-xs font-black text-rose-600"
+                        className="mt-2 text-xs font-black text-rose-700"
                       >
                         Remove from collection
                       </button>

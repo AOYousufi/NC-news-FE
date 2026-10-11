@@ -202,7 +202,7 @@ function Dashboard() {
         <section>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.16em] text-amber-600">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-amber-700">
                 Private
               </p>
               <h2 className="mt-1 text-2xl font-black text-slate-950">Drafts</h2>
@@ -240,7 +240,7 @@ function Dashboard() {
         <section>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-600">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-700">
                 Community
               </p>
               <h2 className="mt-1 text-2xl font-black text-slate-950">Following</h2>

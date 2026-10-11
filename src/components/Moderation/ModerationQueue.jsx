@@ -75,7 +75,7 @@ function ModerationQueue() {
     return (
       <section className="mx-auto flex min-h-[55vh] max-w-3xl items-center justify-center px-4 py-12">
         <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-600">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-700">
             Moderator area
           </p>
           <h1 className="mt-3 text-3xl font-black text-slate-950">
@@ -101,7 +101,7 @@ function ModerationQueue() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="border-b border-slate-200 pb-7">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-600">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-700">
           Trust & safety
         </p>
         <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">
