@@ -305,11 +305,11 @@ test("saves and switches article votes without refreshing", async ({ page }) => 
   await expect(page.getByRole("button", { name: "★ Saved" })).toBeVisible();
   expect(state.saved).toBe(true);
 
-  await page.getByRole("button", { name: "Agree" }).click();
-  await expect(page.getByRole("button", { name: "✓ Agreed" })).toBeVisible();
+  await page.getByRole("button", { name: "Agree", exact: true }).click();
+  await expect(page.getByRole("button", { name: "✓ Agreed", exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Disagree" }).click();
-  await expect(page.getByRole("button", { name: "✓ Disagreed" })).toBeVisible();
+  await page.getByRole("button", { name: "Disagree", exact: true }).click();
+  await expect(page.getByRole("button", { name: "✓ Disagreed", exact: true })).toBeVisible();
   expect(state.vote).toBe(-1);
 });
 
