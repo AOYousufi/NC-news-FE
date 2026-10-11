@@ -21,6 +21,8 @@ const Articles = () => {
   const sortOrder = searchParams.get("order") || "desc";
   const page = Math.max(Number(searchParams.get("p")) || 1, 1);
   const search = searchParams.get("search") || "";
+  const dateFrom = searchParams.get("date_from") || "";
+  const dateTo = searchParams.get("date_to") || "";
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
@@ -31,6 +33,8 @@ const Articles = () => {
       sort_by: sortCriteria,
       order: sortOrder,
       search: search || undefined,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
       limit: PAGE_SIZE,
       p: page,
     })
@@ -40,7 +44,7 @@ const Articles = () => {
       })
       .catch(setError)
       .finally(() => setIsLoading(false));
-  }, [page, search, sortCriteria, sortOrder]);
+  }, [dateFrom, dateTo, page, search, sortCriteria, sortOrder]);
 
   useEffect(() => {
     setSearchInput(search);
@@ -158,6 +162,55 @@ const Articles = () => {
             Results for “{search}”
           </p>
         )}
+
+        <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <label className="text-sm font-bold text-slate-700">
+            From date
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(event) =>
+                updateSearch({
+                  date_from: event.target.value || undefined,
+                  p: 1,
+                })
+              }
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-medium outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+
+          <label className="text-sm font-bold text-slate-700">
+            To date
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(event) =>
+                updateSearch({
+                  date_to: event.target.value || undefined,
+                  p: 1,
+                })
+              }
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-medium outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+
+          {(dateFrom || dateTo) && (
+            <button
+              type="button"
+              onClick={() =>
+                updateSearch({
+                  date_from: undefined,
+                  date_to: undefined,
+                  p: 1,
+                })
+              }
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-600 transition hover:bg-slate-50"
+            >
+              Clear dates
+            </button>
+          )}
+        </div>
 
         <Topics setError={setError} />
 

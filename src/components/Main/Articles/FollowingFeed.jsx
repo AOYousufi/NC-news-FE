@@ -1,7 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../../../Context/userContext";
-import { fetchFollowingFeed } from "../../../api/api";
+import {
+  fetchFollowedTopics,
+  fetchFollowingFeed,
+} from "../../../api/api";
 import Loading from "../../UI/Loading";
 import ArticleCard from "./ArticleCard";
 
@@ -9,6 +12,7 @@ function FollowingFeed() {
   const { loggedUser, isAuthLoading } = useContext(UserContext);
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,8 +24,12 @@ function FollowingFeed() {
 
   useEffect(() => {
     if (!loggedUser) return;
-    fetchFollowingFeed()
-      .then(setArticles)
+
+    Promise.all([fetchFollowingFeed(), fetchFollowedTopics()])
+      .then(([articleData, topicData]) => {
+        setArticles(articleData);
+        setTopics(topicData);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
   }, [loggedUser]);
@@ -39,8 +47,22 @@ function FollowingFeed() {
           Following feed
         </h1>
         <p className="mt-2 max-w-2xl text-slate-500">
-          Fresh stories from the writers you chose to follow.
+          Fresh stories from the writers and topics you chose to follow.
         </p>
+
+        {topics.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {topics.map((topic) => (
+              <Link
+                key={topic.slug}
+                to={"/articles/topics/" + topic.slug}
+                className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700"
+              >
+                #{topic.slug}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && (
@@ -63,14 +85,22 @@ function FollowingFeed() {
         <div className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <h2 className="text-xl font-black text-slate-900">Your feed is quiet</h2>
           <p className="mt-2 text-slate-500">
-            Follow a few writers and their published stories will show up here.
+            Follow writers or topics and their published stories will show up here.
           </p>
-          <Link
-            to="/users"
-            className="mt-5 inline-block rounded-xl bg-indigo-600 px-5 py-3 font-black text-white"
-          >
-            Explore community
-          </Link>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Link
+              to="/users"
+              className="rounded-xl bg-indigo-600 px-5 py-3 font-black text-white"
+            >
+              Explore community
+            </Link>
+            <Link
+              to="/trending"
+              className="rounded-xl border border-slate-300 bg-white px-5 py-3 font-black text-slate-700"
+            >
+              Discover topics
+            </Link>
+          </div>
         </div>
       )}
     </section>

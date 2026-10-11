@@ -10,6 +10,7 @@ import Articles from "./components/Main/Articles/Articles";
 import CreateArticle from "./components/Main/Articles/CreateArticle";
 import EditArticle from "./components/Main/Articles/EditArticle";
 import FollowingFeed from "./components/Main/Articles/FollowingFeed";
+import TrendingFeed from "./components/Main/Articles/TrendingFeed";
 import ListArticlesByTopic from "./components/Main/Articles/ArticlesListedByTopic";
 import SingleArticle from "./components/Main/SingleArticle/singleArticle";
 import Login from "./components/Main/Users/login";
@@ -34,6 +35,7 @@ function App() {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/moderation" element={<ModerationQueue />} />
               <Route path="/following" element={<FollowingFeed />} />
+              <Route path="/trending" element={<TrendingFeed />} />
               <Route path="/articles" element={<Articles />} />
               <Route path="/articles/new" element={<CreateArticle />} />
               <Route

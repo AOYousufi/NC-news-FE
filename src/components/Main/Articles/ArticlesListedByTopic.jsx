@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { fetchArticlesPage } from "../../../api/api";
+import { useContext, useEffect, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { UserContext } from "../../../../Context/userContext";
+import {
+  fetchArticlesPage,
+  fetchTopicFollowStatus,
+  followTopic,
+  unfollowTopic,
+} from "../../../api/api";
 import Error from "../../UI/error";
 import Loading from "../../UI/Loading";
 import ArticleCard from "./ArticleCard";
@@ -10,10 +16,13 @@ const PAGE_SIZE = 8;
 
 function ListArticlesByTopic() {
   const { topic } = useParams();
+  const { loggedUser } = useContext(UserContext);
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const sortCriteria = searchParams.get("sort_by") || "created_at";
@@ -39,6 +48,48 @@ function ListArticlesByTopic() {
       .finally(() => setIsLoading(false));
   }, [page, sortCriteria, sortOrder, topic]);
 
+  useEffect(() => {
+    if (!loggedUser) {
+      setIsFollowing(false);
+      return;
+    }
+
+    let active = true;
+
+    fetchTopicFollowStatus(topic)
+      .then(({ following }) => {
+        if (active) setIsFollowing(following);
+      })
+      .catch(() => {
+        if (active) setIsFollowing(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loggedUser, topic]);
+
+  const toggleFollow = async () => {
+    if (!loggedUser || isFollowLoading) return;
+
+    const previous = isFollowing;
+    setIsFollowing(!previous);
+    setIsFollowLoading(true);
+
+    try {
+      if (previous) {
+        await unfollowTopic(topic);
+      } else {
+        await followTopic(topic);
+      }
+    } catch (err) {
+      setIsFollowing(previous);
+      setError(err);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
   const updateSearch = (changes) => {
     const next = new URLSearchParams(searchParams);
 
@@ -62,16 +113,47 @@ function ListArticlesByTopic() {
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="border-b border-slate-200 pb-7">
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
-          Topic
-        </p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">
-          {title}
-        </h1>
-        <p className="mt-2 text-slate-500">
-          Stories filed under {topic}.
-        </p>
+      <div className="flex flex-col gap-5 border-b border-slate-200 pb-7 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-600">
+            Topic
+          </p>
+          <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">
+            {title}
+          </h1>
+          <p className="mt-2 text-slate-500">
+            Stories filed under {topic}. Follow this topic to mix new stories
+            into your personalised feed.
+          </p>
+        </div>
+
+        {loggedUser ? (
+          <button
+            type="button"
+            onClick={toggleFollow}
+            disabled={isFollowLoading}
+            aria-pressed={isFollowing}
+            className={
+              "w-fit rounded-xl px-5 py-3 text-sm font-black transition disabled:opacity-60 " +
+              (isFollowing
+                ? "border border-indigo-200 bg-indigo-50 text-indigo-700"
+                : "bg-indigo-600 text-white hover:bg-indigo-700")
+            }
+          >
+            {isFollowLoading
+              ? "Updating..."
+              : isFollowing
+                ? "✓ Following topic"
+                : "+ Follow topic"}
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="w-fit rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700"
+          >
+            Sign in to follow topic
+          </Link>
+        )}
       </div>
 
       <div className="mt-6 space-y-4">
@@ -121,14 +203,8 @@ function ListArticlesByTopic() {
             {articles.map((article) => (
               <ArticleCard
                 key={article.article_id}
-                title={article.title}
-                topic={article.topic}
+                {...article}
                 img_url={article.article_img_url}
-                article_id={article.article_id}
-                votes={article.votes}
-                created_at={article.created_at}
-                author={article.author}
-                comment_count={article.comment_count}
               />
             ))}
           </div>

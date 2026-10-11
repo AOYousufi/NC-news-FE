@@ -108,6 +108,18 @@ const fetchFollowingFeed = ({ limit = 20, p = 1 } = {}) =>
     .get("/articles/feed", { params: { limit, p } })
     .then((response) => response.data.articles);
 
+const fetchTrendingArticles = ({ limit = 6 } = {}) =>
+  api
+    .get("/articles/trending", { params: { limit } })
+    .then((response) => response.data.articles);
+
+const fetchArticleRecommendations = (articleId, { limit = 4 } = {}) =>
+  api
+    .get("/articles/" + articleId + "/recommendations", {
+      params: { limit },
+    })
+    .then((response) => response.data.articles);
+
 const saveArticle = (articleId) =>
   api.post("/articles/" + articleId + "/save").then(() => true);
 
@@ -119,6 +131,25 @@ const fetchTopics = () =>
 
 const createTopic = (topic) =>
   api.post("/topics", topic).then((response) => response.data.topic);
+
+const fetchTrendingTopics = ({ limit = 8 } = {}) =>
+  api
+    .get("/topics/trending", { params: { limit } })
+    .then((response) => response.data.topics);
+
+const fetchTopicFollowStatus = (slug) =>
+  api
+    .get("/topics/" + slug + "/follow-status")
+    .then((response) => response.data);
+
+const followTopic = (slug) =>
+  api.post("/topics/" + slug + "/follow").then(() => true);
+
+const unfollowTopic = (slug) =>
+  api.delete("/topics/" + slug + "/follow").then(() => true);
+
+const fetchFollowedTopics = () =>
+  api.get("/users/me/topics").then((response) => response.data.topics);
 
 const fetchUsers = () =>
   api.get("/users").then((response) => response.data.users);
@@ -252,53 +283,110 @@ const reviewModerationReport = (reportId, status) =>
     .patch("/moderation/reports/" + reportId, { status })
     .then((response) => response.data.report);
 
+const fetchModerationAnalytics = () =>
+  api
+    .get("/moderation/analytics")
+    .then((response) => response.data.analytics);
+
+const fetchModerationAudit = ({ limit = 100 } = {}) =>
+  api
+    .get("/moderation/audit", { params: { limit } })
+    .then((response) => response.data.audit);
+
+const fetchCollections = () =>
+  api.get("/collections").then((response) => response.data.collections);
+
+const fetchCollection = (collectionId) =>
+  api
+    .get("/collections/" + collectionId)
+    .then((response) => response.data.collection);
+
+const createCollection = (collection) =>
+  api
+    .post("/collections", collection)
+    .then((response) => response.data.collection);
+
+const updateCollection = (collectionId, updates) =>
+  api
+    .patch("/collections/" + collectionId, updates)
+    .then((response) => response.data.collection);
+
+const deleteCollection = (collectionId) =>
+  api.delete("/collections/" + collectionId).then(() => true);
+
+const addArticleToCollection = (collectionId, articleId) =>
+  api
+    .post("/collections/" + collectionId + "/articles/" + articleId)
+    .then(() => true);
+
+const removeArticleFromCollection = (collectionId, articleId) =>
+  api
+    .delete("/collections/" + collectionId + "/articles/" + articleId)
+    .then(() => true);
+
 export {
   AUTH_EXPIRED_EVENT,
   TOKEN_KEY,
+  addArticleToCollection,
   addComment,
   changePassword,
   clearStoredToken,
   createArticle,
+  createCollection,
   createTopic,
   createReport,
   deleteAccount,
   deleteArticle,
+  deleteCollection,
   deleteComment,
   editComment,
   fetchActivity,
   fetchArticle,
+  fetchArticleRecommendations,
   fetchArticleVote,
   fetchArticleRevisions,
   fetchArticles,
   fetchArticlesPage,
   fetchComments,
+  fetchCollection,
+  fetchCollections,
   fetchCommentVotes,
   fetchCurrentUser,
   fetchDrafts,
   fetchFollowStatus,
+  fetchFollowedTopics,
   fetchFollowing,
   fetchFollowingFeed,
   fetchManagedArticle,
+  fetchModerationAnalytics,
+  fetchModerationAudit,
   fetchModerationReports,
   fetchNotificationCount,
   fetchNotifications,
   fetchSavedArticles,
+  fetchTopicFollowStatus,
   fetchTopics,
+  fetchTrendingArticles,
+  fetchTrendingTopics,
   fetchUser,
   fetchUserComments,
   fetchUserStats,
   fetchUsers,
+  followTopic,
   followUser,
   getStoredToken,
   loginUser,
   markAllNotificationsRead,
   markNotificationRead,
   registerUser,
+  removeArticleFromCollection,
   reviewModerationReport,
   saveArticle,
+  unfollowTopic,
   unfollowUser,
   unsaveArticle,
   updateArticleContent,
+  updateCollection,
   updateCommentVote,
   updateCurrentUser,
   updateVotes,

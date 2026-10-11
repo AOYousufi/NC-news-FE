@@ -79,6 +79,9 @@ function NavBar() {
               <NavLink to="/articles" className={linkClass}>
                 Articles
               </NavLink>
+              <NavLink to="/trending" className={linkClass}>
+                Trending
+              </NavLink>
               <NavLink to="/users" className={linkClass}>
                 Community
               </NavLink>
@@ -180,6 +183,9 @@ function NavBar() {
             <div className="grid gap-1">
               <NavLink to="/articles" className={mobileLinkClass}>
                 Articles
+              </NavLink>
+              <NavLink to="/trending" className={mobileLinkClass}>
+                Trending
               </NavLink>
               <NavLink to="/users" className={mobileLinkClass}>
                 Community
