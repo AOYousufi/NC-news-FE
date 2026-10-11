@@ -4,11 +4,14 @@ import { UserContext } from "../../../../Context/userContext";
 import {
   deleteArticle,
   fetchArticle,
+  fetchArticleReaction,
+  fetchArticleReactions,
   fetchArticleRecommendations,
   fetchArticleVote,
   fetchSavedArticles,
   saveArticle,
   unsaveArticle,
+  updateArticleReaction,
   updateVotes,
 } from "../../../api/api";
 import Error from "../../UI/error";
@@ -34,6 +37,14 @@ function SingleArticle() {
   const [comments, setComments] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [reactionCounts, setReactionCounts] = useState({
+    insightful: 0,
+    useful: 0,
+    funny: 0,
+  });
+  const [userReaction, setUserReaction] = useState(null);
+  const [canReact, setCanReact] = useState(false);
+  const [isReacting, setIsReacting] = useState(false);
   const articleRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -45,17 +56,26 @@ function SingleArticle() {
     setUserVote(0);
     setIsSaved(false);
     setRecommendations([]);
+    setReactionCounts({ insightful: 0, useful: 0, funny: 0 });
+    setUserReaction(null);
+    setCanReact(false);
     setReadingProgress(0);
     setShowDeleteConfirm(false);
 
     Promise.all([
       fetchArticle(article_id),
       fetchArticleRecommendations(article_id, { limit: 4 }).catch(() => []),
+      fetchArticleReactions(article_id).catch(() => ({
+        insightful: 0,
+        useful: 0,
+        funny: 0,
+      })),
     ])
-      .then(([data, recommended]) => {
+      .then(([data, recommended, reactions]) => {
         setArticle(data);
         setVotes(data.votes);
         setRecommendations(recommended);
+        setReactionCounts(reactions);
       })
       .catch(setError);
   }, [article_id]);
@@ -86,6 +106,8 @@ function SingleArticle() {
   useEffect(() => {
     if (!article || !loggedUser) {
       setUserVote(0);
+      setUserReaction(null);
+      setCanReact(false);
       setIsSaved(false);
       return;
     }
@@ -109,6 +131,8 @@ function SingleArticle() {
 
     if (loggedUser.username === article.author) {
       setUserVote(0);
+      setUserReaction(null);
+      setCanReact(false);
       return () => {
         active = false;
       };
@@ -116,12 +140,24 @@ function SingleArticle() {
 
     setIsVoteLoading(true);
 
-    fetchArticleVote(article.article_id)
-      .then(({ vote }) => {
-        if (active) setUserVote(vote);
+    Promise.all([
+      fetchArticleVote(article.article_id),
+      fetchArticleReaction(article.article_id).catch(() => ({
+        reaction: null,
+        can_react: true,
+      })),
+    ])
+      .then(([voteState, reactionState]) => {
+        if (!active) return;
+        setUserVote(voteState.vote);
+        setUserReaction(reactionState.reaction);
+        setCanReact(reactionState.can_react);
       })
       .catch(() => {
-        if (active) setUserVote(0);
+        if (!active) return;
+        setUserVote(0);
+        setUserReaction(null);
+        setCanReact(true);
       })
       .finally(() => {
         if (active) setIsVoteLoading(false);
@@ -159,6 +195,26 @@ function SingleArticle() {
       setActionError(err.message);
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const handleReaction = async (reaction) => {
+    if (!loggedUser || ownsArticle || !canReact || isReacting) return;
+
+    setIsReacting(true);
+    setActionError("");
+
+    try {
+      const updated = await updateArticleReaction(
+        article.article_id,
+        reaction
+      );
+      setUserReaction(updated.reaction);
+      setReactionCounts(updated.counts);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setIsReacting(false);
     }
   };
 
@@ -443,6 +499,72 @@ function SingleArticle() {
               or click your active vote again to remove it.
             </p>
           )}
+
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-slate-900">
+                  React to this story
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Reactions are separate from Agree/Disagree and you can keep
+                  only one active reaction at a time.
+                </p>
+              </div>
+
+              {!loggedUser && (
+                <Link
+                  to="/login"
+                  className="text-xs font-black text-indigo-600 hover:text-indigo-700"
+                >
+                  Sign in to react
+                </Link>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2" aria-label="Article reactions">
+              {[
+                ["insightful", "💡", "Insightful"],
+                ["useful", "✓", "Useful"],
+                ["funny", "😄", "Funny"],
+              ].map(([value, icon, label]) => {
+                const active = userReaction === value;
+                const disabled =
+                  !loggedUser || ownsArticle || !canReact || isReacting;
+
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    disabled={disabled}
+                    onClick={() => handleReaction(value)}
+                    className={
+                      "rounded-xl border px-3.5 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 " +
+                      (active
+                        ? "border-indigo-600 bg-indigo-600 text-white"
+                        : "border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700")
+                    }
+                  >
+                    <span aria-hidden="true">{icon}</span> {label}{" "}
+                    <span
+                      className={
+                        active ? "text-indigo-100" : "text-slate-400"
+                      }
+                    >
+                      {reactionCounts[value] || 0}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {ownsArticle && (
+              <p className="mt-2 text-xs font-semibold text-slate-400">
+                Authors cannot react to their own article.
+              </p>
+            )}
+          </div>
 
           {actionError && (
             <p

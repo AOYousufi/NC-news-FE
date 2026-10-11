@@ -337,7 +337,8 @@ test("submits a report and moderator can resolve it", async ({ page }) => {
   await mockApi(page, { currentUser: moderator });
 
   await page.goto("/moderation");
-  await expect(page.getByRole("heading", { name: "Moderation queue" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Moderation" })).toBeVisible();
+  await page.getByRole("tab", { name: "Reports" }).click();
   await page.getByRole("button", { name: "Resolve" }).click();
   await expect(page.getByText("No open reports.")).toBeVisible();
 });

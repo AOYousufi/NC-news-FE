@@ -120,6 +120,21 @@ const fetchArticleRecommendations = (articleId, { limit = 4 } = {}) =>
     })
     .then((response) => response.data.articles);
 
+const fetchArticleReactions = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/reactions")
+    .then((response) => response.data.reactions);
+
+const fetchArticleReaction = (articleId) =>
+  api
+    .get("/articles/" + articleId + "/reaction")
+    .then((response) => response.data);
+
+const updateArticleReaction = (articleId, reaction) =>
+  api
+    .patch("/articles/" + articleId + "/reaction", { reaction })
+    .then((response) => response.data);
+
 const saveArticle = (articleId) =>
   api.post("/articles/" + articleId + "/save").then(() => true);
 
@@ -342,6 +357,8 @@ export {
   editComment,
   fetchActivity,
   fetchArticle,
+  fetchArticleReaction,
+  fetchArticleReactions,
   fetchArticleRecommendations,
   fetchArticleVote,
   fetchArticleRevisions,
@@ -386,6 +403,7 @@ export {
   unfollowUser,
   unsaveArticle,
   updateArticleContent,
+  updateArticleReaction,
   updateCollection,
   updateCommentVote,
   updateCurrentUser,
