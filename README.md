@@ -142,7 +142,7 @@ Playwright covers important flows including:
 
 ### Accessibility
 
-axe-core checks key public pages against WCAG A/AA rules and fails CI on serious/critical violations.
+axe-core checks public pages, authenticated account/dashboard/article surfaces, the moderator screen and a mobile authenticated viewport against WCAG A/AA rules. Serious/critical violations fail CI.
 
 ## Local setup
 
@@ -157,10 +157,16 @@ npm run dev
 ## Environment
 
 ```text
-VITE_API_URL=https://nc-news-vvdv.onrender.com/api
+VITE_API_URL=http://localhost:9090/api
 ```
 
+For local Vite development, the app defaults to `http://localhost:9090/api` when `VITE_API_URL` is omitted. Production builds default to the deployed Render API.
+
 `VITE_API_URL` is public client configuration, not a secret.
+
+### Netlify headers
+
+`public/_headers` applies browser security headers, a Content Security Policy and long-lived immutable caching for hashed build assets. If the production API hostname changes, update both `VITE_API_URL` and the CSP `connect-src` entry.
 
 ## Useful commands
 
@@ -178,4 +184,4 @@ Authentication tokens are stored in either `sessionStorage` or `localStorage` de
 
 Frontend ownership checks are only presentation logic. The backend remains authoritative for permissions, ownership, draft privacy, moderator access, voting and account mutations.
 
-The app does not depend on an external search, recommendation or notification service. Search, trending, recommendations, follows, collections and notifications are backed by the NC News API/PostgreSQL.
+The app does not depend on an external search, recommendation, notification or avatar-generation service. Search, trending, recommendations, follows, collections and notifications are backed by the NC News API/PostgreSQL, while generated profile avatars are local SVG data URLs.

@@ -1,7 +1,10 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://nc-news-vvdv.onrender.com/api";
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:9090/api"
+    : "https://nc-news-vvdv.onrender.com/api");
 const TOKEN_KEY = "ncNewsToken";
 const AUTH_EXPIRED_EVENT = "nc-news-auth-expired";
 

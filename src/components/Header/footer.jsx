@@ -19,6 +19,9 @@ function Footer() {
           <Link to="/articles" className="text-slate-500 hover:text-slate-900">
             Articles
           </Link>
+          <Link to="/trending" className="text-slate-500 hover:text-slate-900">
+            Trending
+          </Link>
           <Link to="/users" className="text-slate-500 hover:text-slate-900">
             Community
           </Link>
