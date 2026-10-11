@@ -1,0 +1,29 @@
+name: Accessibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - name: Install browser accessibility test tools
+        run: npm install --no-save @playwright/test@1.63.0 @axe-core/playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Run axe accessibility checks
+        run: npx playwright test e2e/accessibility.spec.js
