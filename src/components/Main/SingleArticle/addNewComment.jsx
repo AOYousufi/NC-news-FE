@@ -65,6 +65,10 @@ function PostComment({ article_id, comments, setComments }) {
         disabled={isSubmitting}
         className="mt-4 w-full resize-y rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
       />
+      <p className="mt-2 text-xs text-slate-500">
+        Tip: type <span className="font-black text-indigo-600">@username</span>{" "}
+        to notify another member.
+      </p>
 
       {error && (
         <p role="alert" className="mt-3 text-sm font-medium text-red-600">

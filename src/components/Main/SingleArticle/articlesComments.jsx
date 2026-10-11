@@ -62,11 +62,14 @@ function CommentNode({
   const [reply, setReply] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const ownsComment = loggedUser?.username === comment.author;
+  const isDeleted = Boolean(comment.deleted_at);
+  const ownsComment = !isDeleted && loggedUser?.username === comment.author;
   const voteState = voteStates?.[comment.comment_id];
   const currentVote = voteState?.vote || 0;
-  const canVote = voteState?.can_vote !== false && !ownsComment;
+  const canVote =
+    !isDeleted && voteState?.can_vote !== false && !ownsComment;
   const date = new Date(comment.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
@@ -171,12 +174,16 @@ function CommentNode({
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <Link
-              to={"/users/" + comment.author}
-              className="font-black text-slate-900 transition hover:text-indigo-700"
-            >
-              @{comment.author}
-            </Link>
+            {isDeleted ? (
+              <span className="font-black text-slate-400">Deleted comment</span>
+            ) : (
+              <Link
+                to={"/users/" + comment.author}
+                className="font-black text-slate-900 transition hover:text-indigo-700"
+              >
+                @{comment.author}
+              </Link>
+            )}
             <p className="mt-1 text-xs font-medium text-slate-400">
               {date}
               {comment.votes !== undefined ? " · " + comment.votes + " votes" : ""}
@@ -184,7 +191,7 @@ function CommentNode({
           </div>
 
           <div className="flex gap-1">
-            {loggedUser && (
+            {loggedUser && !isDeleted && (
               <button
                 type="button"
                 onClick={() => setIsReplying((current) => !current)}
@@ -194,7 +201,7 @@ function CommentNode({
               </button>
             )}
 
-            {loggedUser && !ownsComment && (
+            {loggedUser && !ownsComment && !isDeleted && (
               <ReportButton
                 targetType="comment"
                 targetId={comment.comment_id}
@@ -256,17 +263,24 @@ function CommentNode({
             </div>
           </form>
         ) : (
-          <p className="mt-4 whitespace-pre-line break-words leading-7 text-slate-700">
+          <p
+            className={
+              "mt-4 whitespace-pre-line break-words leading-7 " +
+              (isDeleted ? "italic text-slate-400" : "text-slate-700")
+            }
+          >
             {comment.body}
           </p>
         )}
 
-        {comment.updated_at &&
+        {!isDeleted &&
+          comment.updated_at &&
           new Date(comment.updated_at).getTime() >
             new Date(comment.created_at).getTime() + 1000 && (
             <p className="mt-2 text-xs font-semibold text-slate-400">Edited</p>
           )}
 
+        {!isDeleted && (
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
           {loggedUser ? (
             canVote ? (
@@ -311,8 +325,9 @@ function CommentNode({
             </Link>
           )}
         </div>
+        )}
 
-        {isReplying && (
+        {isReplying && !isDeleted && (
           <form
             onSubmit={submitReply}
             className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3"
@@ -328,6 +343,9 @@ function CommentNode({
                 placeholder="Write a reply..."
                 className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
+              <span className="mt-2 block text-xs text-indigo-700">
+                Tip: type @username to notify another member.
+              </span>
             </label>
             <div className="mt-2 flex justify-end">
               <button
@@ -343,22 +361,43 @@ function CommentNode({
       </article>
 
       {comment.replies.length > 0 && (
-        <div className="mt-3 space-y-3">
-          {comment.replies.map((replyComment) => (
-            <CommentNode
-              key={replyComment.comment_id}
-              comment={replyComment}
-              articleId={articleId}
-              depth={Math.min(depth + 1, 5)}
-              loggedUser={loggedUser}
-              refresh={refresh}
-              deletingId={deletingId}
-              setDeletingId={setDeletingId}
-              setError={setError}
-              voteStates={voteStates}
-              onVoteChanged={onVoteChanged}
-            />
-          ))}
+        <div className="mt-3">
+          <button
+            type="button"
+            aria-expanded={!isCollapsed}
+            onClick={() => setIsCollapsed((current) => !current)}
+            className="mb-3 rounded-lg px-2 py-1.5 text-xs font-black text-indigo-600 transition hover:bg-indigo-50"
+          >
+            {isCollapsed
+              ? "Show " +
+                comment.replies.length +
+                " " +
+                (comment.replies.length === 1 ? "reply" : "replies")
+              : "Hide " +
+                comment.replies.length +
+                " " +
+                (comment.replies.length === 1 ? "reply" : "replies")}
+          </button>
+
+          {!isCollapsed && (
+            <div className="space-y-3">
+              {comment.replies.map((replyComment) => (
+                <CommentNode
+                  key={replyComment.comment_id}
+                  comment={replyComment}
+                  articleId={articleId}
+                  depth={Math.min(depth + 1, 5)}
+                  loggedUser={loggedUser}
+                  refresh={refresh}
+                  deletingId={deletingId}
+                  setDeletingId={setDeletingId}
+                  setError={setError}
+                  voteStates={voteStates}
+                  onVoteChanged={onVoteChanged}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

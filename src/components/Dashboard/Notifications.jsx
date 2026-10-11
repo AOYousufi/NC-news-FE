@@ -44,6 +44,7 @@ function Notifications() {
     if (notification.type === "article_comment") return "commented on your article";
     if (notification.type === "article_agree") return "agreed with your article";
     if (notification.type === "article_disagree") return "disagreed with your article";
+    if (notification.type === "mention") return "mentioned you in a comment";
     return "interacted with your account";
   };
 
